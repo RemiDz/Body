@@ -232,12 +232,9 @@ body {
   width: 100%;
   max-width: 500px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: var(--z-body);
-  /* Reserve space at bottom for frequency display */
-  padding-bottom: 90px;
 }
 
 .body-wrapper {
@@ -369,17 +366,16 @@ body {
 
 /* ===== FREQUENCY DISPLAY ===== */
 .frequency-display {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
   z-index: var(--z-ui);
-  height: 80px; /* Fixed height - always reserves space */
-  pointer-events: none; /* Don't block body interactions */
+  /* Fixed height - ALWAYS reserves same space regardless of content visibility */
+  height: 80px;
+  min-height: 80px;
+  flex-shrink: 0;
 }
 
 .freq-value {
@@ -389,19 +385,24 @@ body {
   color: var(--text-bright);
   letter-spacing: 0.05em;
   line-height: 1;
+  /* Use visibility + opacity to always reserve space */
+  visibility: hidden;
   opacity: 0;
-  transform: translateY(10px);
   transition: 
     opacity var(--duration-smooth) var(--ease-out-smooth),
-    transform var(--duration-smooth) var(--ease-out-smooth),
+    visibility 0s var(--duration-smooth),
     color var(--duration-fast) var(--ease-out-fast),
     text-shadow var(--duration-fast) var(--ease-out-fast);
-  will-change: opacity, transform;
 }
 
 .freq-value.visible {
+  visibility: visible;
   opacity: 1;
-  transform: translateY(0);
+  transition: 
+    opacity var(--duration-smooth) var(--ease-out-smooth),
+    visibility 0s 0s,
+    color var(--duration-fast) var(--ease-out-fast),
+    text-shadow var(--duration-fast) var(--ease-out-fast);
 }
 
 .freq-number {
@@ -423,19 +424,26 @@ body {
   letter-spacing: 0.08em;
   line-height: 1;
   margin-bottom: var(--space-xs);
+  /* Use visibility + opacity to always reserve space */
+  visibility: hidden;
   opacity: 0;
-  transform: translateY(8px);
+  /* Fixed height so it always reserves space even when empty */
+  min-height: 1.8rem;
   transition: 
     opacity var(--duration-smooth) var(--ease-out-smooth),
-    transform var(--duration-smooth) var(--ease-out-smooth),
+    visibility 0s var(--duration-smooth),
     color var(--duration-fast) var(--ease-out-fast),
     text-shadow var(--duration-fast) var(--ease-out-fast);
-  will-change: opacity, transform;
 }
 
 .freq-note.visible {
+  visibility: visible;
   opacity: 1;
-  transform: translateY(0);
+  transition: 
+    opacity var(--duration-smooth) var(--ease-out-smooth),
+    visibility 0s 0s,
+    color var(--duration-fast) var(--ease-out-fast),
+    text-shadow var(--duration-fast) var(--ease-out-fast);
 }
 
 /* Adjust Hz display when note is shown */
@@ -780,12 +788,12 @@ body {
   .body-container {
     flex: 1;
     min-height: 0;
-    padding-bottom: 75px; /* Space for frequency display */
   }
   
-  /* Compact frequency display - positioned at bottom */
+  /* Compact frequency display */
   .frequency-display {
-    height: 70px;
+    height: 65px;
+    min-height: 65px;
   }
   
   .freq-note {
@@ -1022,7 +1030,8 @@ body {
   }
   
   .frequency-display {
-    height: 85px;
+    height: 70px;
+    min-height: 70px;
   }
   
   .overlay-content {
@@ -1071,6 +1080,7 @@ body {
   
   .frequency-display {
     height: 75px;
+    min-height: 75px;
   }
   
   .controls {
