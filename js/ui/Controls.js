@@ -5,6 +5,9 @@
 
 import { UI_CONFIG } from '../config.js';
 
+// Touch handler constants
+const TOUCH_HANDLED_RESET_DELAY = 500; // ms
+
 export class Controls {
   constructor(options = {}) {
     this.config = { ...UI_CONFIG, ...options };
@@ -30,7 +33,7 @@ export class Controls {
     this.onSettingsChange = null;
     
     // Touch handler timeout tracking
-    this.touchTimeouts = [];
+    this.touchTimeouts = new Set();
     
     // Bind event handlers
     this.bindEvents();
@@ -41,9 +44,6 @@ export class Controls {
    */
   addTapHandler(element, handler) {
     if (!element) return;
-    
-    // Delay before resetting touch handled flag (ms)
-    const TOUCH_HANDLED_RESET_DELAY = 500;
     
     let touchMoved = false;
     let touchHandled = false;
@@ -67,14 +67,11 @@ export class Controls {
         // Reset flag after a short delay (longer than click event delay)
         const timeoutId = setTimeout(() => { 
           touchHandled = false;
-          // Remove timeout from tracking array
-          const index = this.touchTimeouts.indexOf(timeoutId);
-          if (index > -1) {
-            this.touchTimeouts.splice(index, 1);
-          }
+          // Remove timeout from tracking set
+          this.touchTimeouts.delete(timeoutId);
         }, TOUCH_HANDLED_RESET_DELAY);
         // Track timeout for cleanup
-        this.touchTimeouts.push(timeoutId);
+        this.touchTimeouts.add(timeoutId);
       }
     }, { passive: true });
     
@@ -422,7 +419,7 @@ export class Controls {
   destroy() {
     // Clear all pending touch timeouts
     this.touchTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
-    this.touchTimeouts = [];
+    this.touchTimeouts.clear();
     
     // Remove event listeners would go here if we stored references
     this.onStart = null;
