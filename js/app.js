@@ -282,9 +282,9 @@ class ResonanceApp {
         // Update body visuals
         this.bodyRenderer?.setAllRegions(intensities);
         
-        // Update particles
+        // Update particles with dominant frequency for pulsing
         if (this.calibration?.particlesEnabled !== false) {
-          this.particleSystem?.update(intensities, this.regionBounds, deltaTime);
+          this.particleSystem?.update(intensities, this.regionBounds, deltaTime, audioData.dominantFrequency);
         }
         
         // Update frequency display

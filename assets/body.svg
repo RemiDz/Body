@@ -12,6 +12,9 @@
     .light-theme .organ { stroke-opacity: 0.35 !important; fill-opacity: 0.08 !important; }
     .light-theme .chakra-label { fill-opacity: 0.9 !important; }
     .light-theme .organ-label { fill-opacity: 0.8 !important; }
+    /* Energy spine lines in light mode */
+    .light-theme .energy-spine-line { opacity: 0.08 !important; }
+    .light-theme .energy-spine-node { opacity: 0.15 !important; }
   </style>
   
   <defs>
@@ -57,6 +60,41 @@
       <stop offset="50%" stop-color="rgba(255,255,255,0.06)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0.02)"/>
     </linearGradient>
+    
+    <!-- Energy spine line gradients (blend between adjacent chakra colors) -->
+    <linearGradient id="spine-crown-thirdeye" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#aa55dd"/>
+      <stop offset="100%" stop-color="#6655cc"/>
+    </linearGradient>
+    <linearGradient id="spine-thirdeye-throat" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#6655cc"/>
+      <stop offset="100%" stop-color="#00aacc"/>
+    </linearGradient>
+    <linearGradient id="spine-throat-heart" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00aacc"/>
+      <stop offset="100%" stop-color="#00bb77"/>
+    </linearGradient>
+    <linearGradient id="spine-heart-solar" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00bb77"/>
+      <stop offset="100%" stop-color="#ccaa00"/>
+    </linearGradient>
+    <linearGradient id="spine-solar-sacral" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ccaa00"/>
+      <stop offset="100%" stop-color="#dd6600"/>
+    </linearGradient>
+    <linearGradient id="spine-sacral-root" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#dd6600"/>
+      <stop offset="100%" stop-color="#cc3333"/>
+    </linearGradient>
+    
+    <!-- Filter for energy line glow -->
+    <filter id="energy-line-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
   
   <!-- BODY SILHOUETTE - LOCKED, DO NOT MODIFY -->
@@ -129,6 +167,45 @@
     <!-- Pelvis hint -->
     <path id="pelvis" d="M88 108 Q96 116, 103 118 Q110 116, 118 108"
       stroke="rgba(255,255,255,0.08)" stroke-width="1" fill="none"/>
+  </g>
+  
+  <!-- ENERGY SPINE - Chakra connecting lines that glow with energy flow -->
+  <g id="energy-spine-layer" class="energy-spine-layer">
+    <!-- Line segments connecting chakra centers along spine -->
+    <!-- Each segment glows when energy flows between adjacent chakras -->
+    <line id="spine-line-crown-thirdeye" class="energy-spine-line" 
+      x1="103" y1="6" x2="103" y2="14" 
+      stroke="url(#spine-crown-thirdeye)" stroke-width="2" stroke-linecap="round"
+      opacity="0.05" filter="url(#energy-line-glow)"/>
+    <line id="spine-line-thirdeye-throat" class="energy-spine-line"
+      x1="103" y1="14" x2="103" y2="26"
+      stroke="url(#spine-thirdeye-throat)" stroke-width="2" stroke-linecap="round"
+      opacity="0.05" filter="url(#energy-line-glow)"/>
+    <line id="spine-line-throat-heart" class="energy-spine-line"
+      x1="103" y1="26" x2="103" y2="58"
+      stroke="url(#spine-throat-heart)" stroke-width="2" stroke-linecap="round"
+      opacity="0.05" filter="url(#energy-line-glow)"/>
+    <line id="spine-line-heart-solar" class="energy-spine-line"
+      x1="103" y1="58" x2="103" y2="90"
+      stroke="url(#spine-heart-solar)" stroke-width="2" stroke-linecap="round"
+      opacity="0.05" filter="url(#energy-line-glow)"/>
+    <line id="spine-line-solar-sacral" class="energy-spine-line"
+      x1="103" y1="90" x2="103" y2="108"
+      stroke="url(#spine-solar-sacral)" stroke-width="2" stroke-linecap="round"
+      opacity="0.05" filter="url(#energy-line-glow)"/>
+    <line id="spine-line-sacral-root" class="energy-spine-line"
+      x1="103" y1="108" x2="103" y2="120"
+      stroke="url(#spine-sacral-root)" stroke-width="2" stroke-linecap="round"
+      opacity="0.05" filter="url(#energy-line-glow)"/>
+    
+    <!-- Chakra center nodes (small circles at each chakra point) -->
+    <circle id="spine-node-crown" class="energy-spine-node" cx="103" cy="6" r="2" fill="#aa55dd" opacity="0.1"/>
+    <circle id="spine-node-thirdeye" class="energy-spine-node" cx="103" cy="14" r="2" fill="#6655cc" opacity="0.1"/>
+    <circle id="spine-node-throat" class="energy-spine-node" cx="103" cy="26" r="2" fill="#00aacc" opacity="0.1"/>
+    <circle id="spine-node-heart" class="energy-spine-node" cx="103" cy="58" r="2.5" fill="#00bb77" opacity="0.1"/>
+    <circle id="spine-node-solar" class="energy-spine-node" cx="103" cy="90" r="2" fill="#ccaa00" opacity="0.1"/>
+    <circle id="spine-node-sacral" class="energy-spine-node" cx="103" cy="108" r="2" fill="#dd6600" opacity="0.1"/>
+    <circle id="spine-node-root" class="energy-spine-node" cx="103" cy="120" r="2" fill="#cc3333" opacity="0.1"/>
   </g>
   
   <!-- ORGANS LAYER - Positioned within body silhouette -->

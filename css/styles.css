@@ -266,6 +266,19 @@ body {
   fill: none;
 }
 
+/* ===== ENERGY SPINE ===== */
+.energy-spine-layer {
+  pointer-events: none;
+}
+
+.energy-spine-line {
+  transition: opacity 0.3s ease-out, stroke-width 0.3s ease-out;
+}
+
+.energy-spine-node {
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
 .skeletal-layer {
   opacity: 0.4;
 }

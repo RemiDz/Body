@@ -19,6 +19,8 @@ export class BodyRenderer {
     // Cache element references
     this.energyElements = {};
     this.organElements = {};
+    this.spineLineElements = {};
+    this.spineNodeElements = {};
     
     this.isLoaded = false;
     this.isIdleAnimating = false;
@@ -108,6 +110,41 @@ export class BodyRenderer {
         }
       }
     }
+    
+    // Cache spine line elements (connecting chakra centers)
+    const spineConnections = [
+      { id: 'spine-line-crown-thirdeye', regions: ['crown', 'thirdEye'] },
+      { id: 'spine-line-thirdeye-throat', regions: ['thirdEye', 'throat'] },
+      { id: 'spine-line-throat-heart', regions: ['throat', 'heart'] },
+      { id: 'spine-line-heart-solar', regions: ['heart', 'solar'] },
+      { id: 'spine-line-solar-sacral', regions: ['solar', 'sacral'] },
+      { id: 'spine-line-sacral-root', regions: ['sacral', 'root'] }
+    ];
+    
+    for (const connection of spineConnections) {
+      const element = this.svgElement.querySelector(`#${connection.id}`);
+      if (element) {
+        this.spineLineElements[connection.id] = {
+          element,
+          regions: connection.regions
+        };
+      }
+    }
+    
+    // Cache spine node elements (chakra center points)
+    const regionNames = ['crown', 'thirdEye', 'throat', 'heart', 'solar', 'sacral', 'root'];
+    for (const regionName of regionNames) {
+      const nodeId = `spine-node-${regionName.toLowerCase().replace('eye', 'eye')}`;
+      const element = this.svgElement.querySelector(`#${nodeId}`);
+      if (element) {
+        this.spineNodeElements[regionName] = element;
+      }
+    }
+    // Handle thirdEye specifically
+    const thirdEyeNode = this.svgElement.querySelector('#spine-node-thirdeye');
+    if (thirdEyeNode) {
+      this.spineNodeElements['thirdEye'] = thirdEyeNode;
+    }
   }
   
   /**
@@ -147,6 +184,54 @@ export class BodyRenderer {
     
     for (const [regionName, intensity] of Object.entries(intensityMap)) {
       this.setRegionIntensity(regionName, intensity);
+    }
+    
+    // Update spine lines and nodes based on adjacent region intensities
+    this.updateSpineLines(intensityMap);
+  }
+  
+  /**
+   * Update spine line opacities based on adjacent region intensities
+   * Lines glow when energy flows between connected chakras
+   */
+  updateSpineLines(intensityMap) {
+    // Update spine lines (glow based on average of connected regions)
+    for (const [lineId, lineData] of Object.entries(this.spineLineElements)) {
+      const [region1, region2] = lineData.regions;
+      const intensity1 = intensityMap[region1] || 0;
+      const intensity2 = intensityMap[region2] || 0;
+      
+      // Line glows when either connected region is active
+      // Use max for stronger effect, or average for subtler effect
+      const lineIntensity = Math.max(intensity1, intensity2) * 0.8;
+      
+      if (lineIntensity > 0.05) {
+        // Active - glow the line
+        const opacity = 0.1 + lineIntensity * 0.7;
+        const strokeWidth = 2 + lineIntensity * 2;
+        lineData.element.style.opacity = opacity;
+        lineData.element.style.strokeWidth = strokeWidth;
+      } else {
+        // Inactive - subtle base visibility
+        lineData.element.style.opacity = 0.05;
+        lineData.element.style.strokeWidth = 2;
+      }
+    }
+    
+    // Update spine nodes (chakra center points)
+    for (const [regionName, nodeElement] of Object.entries(this.spineNodeElements)) {
+      const intensity = intensityMap[regionName] || 0;
+      
+      if (intensity > 0.05) {
+        const opacity = 0.15 + intensity * 0.7;
+        const scale = 1 + intensity * 0.5;
+        nodeElement.style.opacity = opacity;
+        nodeElement.style.transform = `scale(${scale})`;
+        nodeElement.style.transformOrigin = 'center';
+      } else {
+        nodeElement.style.opacity = 0.1;
+        nodeElement.style.transform = 'scale(1)';
+      }
     }
   }
   
