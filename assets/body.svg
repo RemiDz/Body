@@ -1,442 +1,258 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 500" fill="none" class="body-svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 206.326 206.326" class="body-svg">
   <!--
-    RESONANCE BODY - Anatomically Proportioned Human Figure
-    Based on classical 8-head proportion system
-    ViewBox: 200x500 (body silhouette is LOCKED - do not modify)
+    RESONANCE BODY - Human Silhouette from SVGRepo
+    Body path is LOCKED - DO NOT MODIFY
+    Center: x=103, Body spans roughly x=70-140
   -->
   
   <style>
     /* Light mode overrides */
-    .light-theme #body-outline {
-      stroke: rgba(50,40,70,0.25) !important;
-      fill: rgba(50,40,70,0.04) !important;
-    }
-    .light-theme #skeletal-layer path,
-    .light-theme #skeletal-layer circle {
-      stroke: rgba(50,40,70,0.12) !important;
-      fill: rgba(50,40,70,0.08) !important;
-    }
-    .light-theme .organ-group .organ {
-      stroke-opacity: 0.3 !important;
-      fill-opacity: 0.06 !important;
-    }
+    .light-theme #body-outline { stroke: rgba(50,40,70,0.3) !important; fill: rgba(50,40,70,0.05) !important; }
+    .light-theme #skeletal-layer path, .light-theme #skeletal-layer circle { stroke: rgba(50,40,70,0.15) !important; fill: rgba(50,40,70,0.1) !important; }
+    .light-theme .organ { stroke-opacity: 0.35 !important; fill-opacity: 0.08 !important; }
+    .light-theme .chakra-label { fill-opacity: 0.9 !important; }
+    .light-theme .organ-label { fill-opacity: 0.8 !important; }
   </style>
   
   <defs>
-    <!-- Glow gradients for each region -->
+    <!-- Glow gradients -->
     <radialGradient id="glow-root" cx="50%" cy="50%" r="60%">
       <stop offset="0%" stop-color="#cc3333" stop-opacity="0.9"/>
       <stop offset="60%" stop-color="#cc3333" stop-opacity="0.3"/>
       <stop offset="100%" stop-color="#cc3333" stop-opacity="0"/>
     </radialGradient>
-    
     <radialGradient id="glow-sacral" cx="50%" cy="50%" r="60%">
       <stop offset="0%" stop-color="#dd6600" stop-opacity="0.9"/>
       <stop offset="60%" stop-color="#dd6600" stop-opacity="0.3"/>
       <stop offset="100%" stop-color="#dd6600" stop-opacity="0"/>
     </radialGradient>
-    
     <radialGradient id="glow-solar" cx="50%" cy="50%" r="60%">
       <stop offset="0%" stop-color="#ccaa00" stop-opacity="0.9"/>
       <stop offset="60%" stop-color="#ccaa00" stop-opacity="0.3"/>
       <stop offset="100%" stop-color="#ccaa00" stop-opacity="0"/>
     </radialGradient>
-    
     <radialGradient id="glow-heart" cx="50%" cy="50%" r="60%">
       <stop offset="0%" stop-color="#00bb77" stop-opacity="0.9"/>
       <stop offset="60%" stop-color="#00bb77" stop-opacity="0.3"/>
       <stop offset="100%" stop-color="#00bb77" stop-opacity="0"/>
     </radialGradient>
-    
     <radialGradient id="glow-throat" cx="50%" cy="50%" r="60%">
       <stop offset="0%" stop-color="#00aacc" stop-opacity="0.9"/>
       <stop offset="60%" stop-color="#00aacc" stop-opacity="0.3"/>
       <stop offset="100%" stop-color="#00aacc" stop-opacity="0"/>
     </radialGradient>
-    
     <radialGradient id="glow-thirdeye" cx="50%" cy="50%" r="60%">
       <stop offset="0%" stop-color="#6655cc" stop-opacity="0.9"/>
       <stop offset="60%" stop-color="#6655cc" stop-opacity="0.3"/>
       <stop offset="100%" stop-color="#6655cc" stop-opacity="0"/>
     </radialGradient>
-    
     <radialGradient id="glow-crown" cx="50%" cy="50%" r="60%">
       <stop offset="0%" stop-color="#aa55dd" stop-opacity="0.9"/>
       <stop offset="60%" stop-color="#aa55dd" stop-opacity="0.3"/>
       <stop offset="100%" stop-color="#aa55dd" stop-opacity="0"/>
     </radialGradient>
     
-    <!-- Subtle body fill gradient -->
     <linearGradient id="body-fill" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="rgba(255,255,255,0.02)"/>
-      <stop offset="50%" stop-color="rgba(255,255,255,0.05)"/>
+      <stop offset="50%" stop-color="rgba(255,255,255,0.06)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0.02)"/>
     </linearGradient>
   </defs>
   
-  <!-- MAIN BODY SILHOUETTE - Anatomically correct proportions -->
+  <!-- BODY SILHOUETTE - LOCKED, DO NOT MODIFY -->
   <g id="body-silhouette">
-    <path id="body-outline" d="
-      M 100 8
-      
-      C 120 8, 132 20, 134 38
-      C 136 52, 132 62, 126 70
-      L 126 72
-      
-      C 130 74, 134 78, 136 82
-      
-      C 138 82, 140 83, 142 84
-      L 148 86
-      C 156 88, 164 92, 170 98
-      C 178 106, 184 116, 186 128
-      C 188 138, 188 150, 186 162
-      L 183 178
-      C 181 188, 178 196, 174 202
-      C 172 206, 169 208, 166 208
-      L 158 206
-      C 154 205, 151 202, 150 198
-      L 148 188
-      C 146 178, 145 168, 145 158
-      C 145 152, 144 146, 142 142
-      
-      L 140 138
-      L 138 146
-      C 137 156, 138 168, 140 182
-      C 142 198, 144 216, 144 234
-      L 143 250
-      
-      C 142 258, 140 264, 138 268
-      L 136 272
-      C 138 284, 140 298, 142 314
-      C 144 334, 146 356, 146 378
-      L 146 410
-      C 146 430, 145 450, 142 468
-      L 140 480
-      C 139 486, 136 490, 132 492
-      L 118 494
-      C 114 494, 111 492, 110 488
-      L 108 476
-      C 106 460, 108 442, 110 424
-      L 112 400
-      C 113 380, 113 360, 112 340
-      L 110 310
-      C 109 296, 106 284, 103 274
-      
-      L 100 268
-      
-      L 97 274
-      C 94 284, 91 296, 90 310
-      L 88 340
-      C 87 360, 87 380, 88 400
-      L 90 424
-      C 92 442, 94 460, 92 476
-      L 90 488
-      C 89 492, 86 494, 82 494
-      L 68 492
-      C 64 490, 61 486, 60 480
-      L 58 468
-      C 55 450, 54 430, 54 410
-      L 54 378
-      C 54 356, 56 334, 58 314
-      C 60 298, 62 284, 64 272
-      L 62 268
-      C 60 264, 58 258, 57 250
-      L 56 234
-      C 56 216, 58 198, 60 182
-      C 62 168, 63 156, 62 146
-      L 60 138
-      
-      L 58 142
-      C 56 146, 55 152, 55 158
-      C 55 168, 54 178, 52 188
-      L 50 198
-      C 49 202, 46 205, 42 206
-      L 34 208
-      C 31 208, 28 206, 26 202
-      C 22 196, 19 188, 17 178
-      L 14 162
-      C 12 150, 12 138, 14 128
-      C 16 116, 22 106, 30 98
-      C 36 92, 44 88, 52 86
-      L 58 84
-      C 60 83, 62 82, 64 82
-      
-      C 66 78, 70 74, 74 72
-      L 74 70
-      C 68 62, 64 52, 66 38
-      C 68 20, 80 8, 100 8
-      Z"
-      stroke="rgba(255,255,255,0.15)"
-      stroke-width="1"
+    <path id="body-outline" d="M104.265,117.959c-0.304,3.58,2.126,22.529,3.38,29.959c0.597,3.52,2.234,9.255,1.645,12.3
+      c-0.841,4.244-1.084,9.736-0.621,12.934c0.292,1.942,1.211,10.899-0.104,14.175c-0.688,1.718-1.949,10.522-1.949,10.522
+      c-3.285,8.294-1.431,7.886-1.431,7.886c1.017,1.248,2.759,0.098,2.759,0.098c1.327,0.846,2.246-0.201,2.246-0.201
+      c1.139,0.943,2.467-0.116,2.467-0.116c1.431,0.743,2.758-0.627,2.758-0.627c0.822,0.414,1.023-0.109,1.023-0.109
+      c2.466-0.158-1.376-8.05-1.376-8.05c-0.92-7.088,0.913-11.033,0.913-11.033c6.004-17.805,6.309-22.53,3.909-29.24
+      c-0.676-1.937-0.847-2.704-0.536-3.545c0.719-1.941,0.195-9.748,1.072-12.848c1.692-5.979,3.361-21.142,4.231-28.217
+      c1.169-9.53-4.141-22.308-4.141-22.308c-1.163-5.2,0.542-23.727,0.542-23.727c2.381,3.705,2.29,10.245,2.29,10.245
+      c-0.378,6.859,5.541,17.342,5.541,17.342c2.844,4.332,3.921,8.442,3.921,8.747c0,1.248-0.273,4.269-0.273,4.269l0.109,2.631
+      c0.049,0.67,0.426,2.977,0.365,4.092c-0.444,6.862,0.646,5.571,0.646,5.571c0.92,0,1.931-5.522,1.931-5.522
+      c0,1.424-0.348,5.687,0.42,7.295c0.919,1.918,1.595-0.329,1.607-0.78c0.243-8.737,0.768-6.448,0.768-6.448
+      c0.511,7.088,1.139,8.689,2.265,8.135c0.853-0.407,0.073-8.506,0.073-8.506c1.461,4.811,2.569,5.577,2.569,5.577
+      c2.411,1.693,0.92-2.983,0.585-3.909c-1.784-4.92-1.839-6.625-1.839-6.625c2.229,4.421,3.909,4.257,3.909,4.257
+      c2.174-0.694-1.9-6.954-4.287-9.953c-1.218-1.528-2.789-3.574-3.245-4.789c-0.743-2.058-1.304-8.674-1.304-8.674
+      c-0.225-7.807-2.155-11.198-2.155-11.198c-3.3-5.282-3.921-15.135-3.921-15.135l-0.146-16.635
+      c-1.157-11.347-9.518-11.429-9.518-11.429c-8.451-1.258-9.627-3.988-9.627-3.988c-1.79-2.576-0.767-7.514-0.767-7.514
+      c1.485-1.208,2.058-4.415,2.058-4.415c2.466-1.891,2.345-4.658,1.206-4.628c-0.914,0.024-0.707-0.733-0.707-0.733
+      C115.068,0.636,104.01,0,104.01,0h-1.688c0,0-11.063,0.636-9.523,13.089c0,0,0.207,0.758-0.715,0.733
+      c-1.136-0.03-1.242,2.737,1.215,4.628c0,0,0.572,3.206,2.058,4.415c0,0,1.023,4.938-0.767,7.514c0,0-1.172,2.73-9.627,3.988
+      c0,0-8.375,0.082-9.514,11.429l-0.158,16.635c0,0-0.609,9.853-3.922,15.135c0,0-1.921,3.392-2.143,11.198
+      c0,0-0.563,6.616-1.303,8.674c-0.451,1.209-2.021,3.255-3.249,4.789c-2.408,2.993-6.455,9.24-4.29,9.953
+      c0,0,1.689,0.164,3.909-4.257c0,0-0.046,1.693-1.827,6.625c-0.35,0.914-1.839,5.59,0.573,3.909c0,0,1.117-0.767,2.569-5.577
+      c0,0-0.779,8.099,0.088,8.506c1.133,0.555,1.751-1.047,2.262-8.135c0,0,0.524-2.289,0.767,6.448
+      c0.012,0.451,0.673,2.698,1.596,0.78c0.779-1.608,0.429-5.864,0.429-7.295c0,0,0.999,5.522,1.933,5.522
+      c0,0,1.099,1.291,0.648-5.571c-0.073-1.121,0.32-3.422,0.369-4.092l0.106-2.631c0,0-0.274-3.014-0.274-4.269
+      c0-0.311,1.078-4.415,3.921-8.747c0,0,5.913-10.488,5.532-17.342c0,0-0.082-6.54,2.299-10.245c0,0,1.69,18.526,0.545,23.727
+      c0,0-5.319,12.778-4.146,22.308c0.864,7.094,2.53,22.237,4.226,28.217c0.886,3.094,0.362,10.899,1.072,12.848
+      c0.32,0.847,0.152,1.627-0.536,3.545c-2.387,6.71-2.083,11.436,3.921,29.24c0,0,1.848,3.945,0.914,11.033
+      c0,0-3.836,7.892-1.379,8.05c0,0,0.192,0.523,1.023,0.109c0,0,1.327,1.37,2.761,0.627c0,0,1.328,1.06,2.463,0.116
+      c0,0,0.91,1.047,2.237,0.201c0,0,1.742,1.175,2.777-0.098c0,0,1.839,0.408-1.435-7.886c0,0-1.254-8.793-1.945-10.522
+      c-1.318-3.275-0.387-12.251-0.106-14.175c0.453-3.216,0.21-8.695-0.618-12.934c-0.606-3.038,1.035-8.774,1.641-12.3
+      c1.245-7.423,3.685-26.373,3.38-29.959l1.008,0.354C103.809,118.312,104.265,117.959,104.265,117.959z"
+      stroke="rgba(255,255,255,0.18)"
+      stroke-width="0.5"
       fill="url(#body-fill)"
     />
   </g>
   
-  <!-- SKELETAL HINTS - Very subtle -->
+  <!-- SKELETAL HINTS - Subtle spine and structure -->
   <g id="skeletal-layer" opacity="0.4">
     <!-- Spine -->
-    <path id="spine" d="
-      M 100 82
-      L 100 92
-      Q 100 102, 100 112
-      Q 100 122, 100 132
-      Q 100 142, 100 152
-      Q 100 162, 100 172
-      Q 100 182, 100 192
-      Q 100 202, 100 212
-      Q 100 222, 100 232
-      L 100 250"
-      stroke="rgba(255,255,255,0.08)"
-      stroke-width="2.5"
-      stroke-linecap="round"
-      fill="none"
-    />
+    <path id="spine" d="M103 28 L103 38 Q103 48, 103 58 Q103 68, 103 78 Q103 88, 103 98 L103 115"
+      stroke="rgba(255,255,255,0.1)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
     
     <!-- Vertebrae dots -->
     <g id="vertebrae">
-      <circle cx="100" cy="92" r="1.5" fill="rgba(255,255,255,0.06)"/>
-      <circle cx="100" cy="112" r="1.5" fill="rgba(255,255,255,0.06)"/>
-      <circle cx="100" cy="132" r="1.5" fill="rgba(255,255,255,0.06)"/>
-      <circle cx="100" cy="152" r="1.5" fill="rgba(255,255,255,0.06)"/>
-      <circle cx="100" cy="172" r="1.5" fill="rgba(255,255,255,0.06)"/>
-      <circle cx="100" cy="192" r="1.5" fill="rgba(255,255,255,0.06)"/>
-      <circle cx="100" cy="212" r="1.5" fill="rgba(255,255,255,0.06)"/>
-      <circle cx="100" cy="232" r="1.5" fill="rgba(255,255,255,0.06)"/>
+      <circle cx="103" cy="32" r="1" fill="rgba(255,255,255,0.08)"/>
+      <circle cx="103" cy="42" r="1" fill="rgba(255,255,255,0.08)"/>
+      <circle cx="103" cy="52" r="1" fill="rgba(255,255,255,0.08)"/>
+      <circle cx="103" cy="62" r="1" fill="rgba(255,255,255,0.08)"/>
+      <circle cx="103" cy="72" r="1" fill="rgba(255,255,255,0.08)"/>
+      <circle cx="103" cy="82" r="1" fill="rgba(255,255,255,0.08)"/>
+      <circle cx="103" cy="92" r="1" fill="rgba(255,255,255,0.08)"/>
+      <circle cx="103" cy="102" r="1" fill="rgba(255,255,255,0.08)"/>
     </g>
     
-    <!-- Ribcage suggestion -->
+    <!-- Ribcage hints -->
     <g id="ribcage">
-      <path d="M 100 105 Q 85 108, 72 118" stroke="rgba(255,255,255,0.05)" stroke-width="0.8" fill="none"/>
-      <path d="M 100 105 Q 115 108, 128 118" stroke="rgba(255,255,255,0.05)" stroke-width="0.8" fill="none"/>
-      <path d="M 100 118 Q 82 122, 68 135" stroke="rgba(255,255,255,0.05)" stroke-width="0.8" fill="none"/>
-      <path d="M 100 118 Q 118 122, 132 135" stroke="rgba(255,255,255,0.05)" stroke-width="0.8" fill="none"/>
-      <path d="M 100 132 Q 80 138, 66 152" stroke="rgba(255,255,255,0.05)" stroke-width="0.8" fill="none"/>
-      <path d="M 100 132 Q 120 138, 134 152" stroke="rgba(255,255,255,0.05)" stroke-width="0.8" fill="none"/>
-      <path d="M 100 146 Q 82 152, 70 165" stroke="rgba(255,255,255,0.05)" stroke-width="0.8" fill="none"/>
-      <path d="M 100 146 Q 118 152, 130 165" stroke="rgba(255,255,255,0.05)" stroke-width="0.8" fill="none"/>
+      <path d="M103 42 Q95 44, 88 50" stroke="rgba(255,255,255,0.06)" stroke-width="0.5" fill="none"/>
+      <path d="M103 42 Q111 44, 118 50" stroke="rgba(255,255,255,0.06)" stroke-width="0.5" fill="none"/>
+      <path d="M103 50 Q94 53, 86 60" stroke="rgba(255,255,255,0.06)" stroke-width="0.5" fill="none"/>
+      <path d="M103 50 Q112 53, 120 60" stroke="rgba(255,255,255,0.06)" stroke-width="0.5" fill="none"/>
+      <path d="M103 58 Q93 62, 85 70" stroke="rgba(255,255,255,0.06)" stroke-width="0.5" fill="none"/>
+      <path d="M103 58 Q113 62, 121 70" stroke="rgba(255,255,255,0.06)" stroke-width="0.5" fill="none"/>
     </g>
     
     <!-- Pelvis hint -->
-    <path id="pelvis" d="
-      M 72 242
-      Q 86 256, 100 260
-      Q 114 256, 128 242"
-      stroke="rgba(255,255,255,0.06)"
-      stroke-width="1.5"
-      fill="none"
-    />
-    
-    <!-- Clavicles -->
-    <path d="M 100 92 Q 85 90, 70 96" stroke="rgba(255,255,255,0.05)" stroke-width="0.8" fill="none"/>
-    <path d="M 100 92 Q 115 90, 130 96" stroke="rgba(255,255,255,0.05)" stroke-width="0.8" fill="none"/>
+    <path id="pelvis" d="M88 108 Q96 116, 103 118 Q110 116, 118 108"
+      stroke="rgba(255,255,255,0.08)" stroke-width="1" fill="none"/>
   </g>
   
-  <!-- ORGANS LAYER -->
+  <!-- ORGANS LAYER - Positioned within body silhouette -->
   <g id="organs-layer">
     
-    <!-- CROWN - Brain area -->
+    <!-- CROWN - Brain (head area y=0-18) -->
     <g id="organ-crown" class="organ-group" data-region="crown">
-      <ellipse id="brain" cx="100" cy="38" rx="22" ry="18"
-               class="organ" data-organ="brain"
-               fill="rgba(170,85,221,0.03)" 
-               stroke="rgba(170,85,221,0.12)" 
-               stroke-width="0.5"/>
-      <!-- Brain folds hint -->
-      <path d="M 88 34 Q 94 30, 100 33 Q 106 30, 112 34" 
-            stroke="rgba(170,85,221,0.08)" stroke-width="0.5" fill="none"/>
-      <path d="M 85 42 Q 92 39, 100 42 Q 108 39, 115 42" 
-            stroke="rgba(170,85,221,0.08)" stroke-width="0.5" fill="none"/>
+      <ellipse id="brain" cx="103" cy="8" rx="8" ry="6" class="organ" data-organ="brain"
+        fill="rgba(170,85,221,0.04)" stroke="rgba(170,85,221,0.15)" stroke-width="0.3"/>
+      <path d="M98 6 Q101 4, 103 6 Q105 4, 108 6" stroke="rgba(170,85,221,0.1)" stroke-width="0.3" fill="none"/>
     </g>
     
-    <!-- THIRD EYE - Pineal region -->
+    <!-- THIRD EYE - Pineal (forehead y=12-16) -->
     <g id="organ-thirdeye" class="organ-group" data-region="thirdeye">
-      <ellipse id="pineal" cx="100" cy="52" rx="10" ry="7"
-               class="organ" data-organ="pineal"
-               fill="rgba(102,85,204,0.03)" 
-               stroke="rgba(102,85,204,0.12)" 
-               stroke-width="0.5"/>
+      <ellipse id="pineal" cx="103" cy="14" rx="5" ry="3" class="organ" data-organ="pineal"
+        fill="rgba(102,85,204,0.04)" stroke="rgba(102,85,204,0.15)" stroke-width="0.3"/>
     </g>
     
-    <!-- THROAT - Thyroid area -->
+    <!-- THROAT - Thyroid (neck y=22-30) -->
     <g id="organ-throat" class="organ-group" data-region="throat">
-      <path id="thyroid" class="organ" data-organ="thyroid" d="
-        M 92 82
-        Q 88 86, 88 92
-        Q 88 96, 92 98
-        L 100 100
-        L 108 98
-        Q 112 96, 112 92
-        Q 112 86, 108 82
-        L 100 80
-        L 92 82
-        Z"
-        fill="rgba(0,170,204,0.03)" 
-        stroke="rgba(0,170,204,0.12)" 
-        stroke-width="0.5"/>
+      <ellipse id="thyroid" cx="103" cy="26" rx="6" ry="4" class="organ" data-organ="thyroid"
+        fill="rgba(0,170,204,0.04)" stroke="rgba(0,170,204,0.15)" stroke-width="0.3"/>
     </g>
     
-    <!-- HEART REGION - Heart and Lungs -->
+    <!-- HEART REGION - Heart and Lungs (chest y=38-70) -->
     <g id="organ-heart" class="organ-group" data-region="heart">
       <!-- Left Lung -->
       <path id="lung-left" class="organ" data-organ="lung-left" d="
-        M 72 110
-        Q 62 118, 60 135
-        Q 58 155, 64 170
-        Q 70 180, 82 178
-        Q 92 175, 94 160
-        Q 96 140, 90 125
-        Q 85 112, 72 110
-        Z"
-        fill="rgba(0,187,119,0.02)" 
-        stroke="rgba(0,187,119,0.1)" 
-        stroke-width="0.5"/>
+        M90 42 Q82 48, 81 58 Q80 68, 85 75 Q90 80, 97 78 Q102 75, 101 65 Q100 52, 95 45 Q92 42, 90 42 Z"
+        fill="rgba(0,187,119,0.03)" stroke="rgba(0,187,119,0.12)" stroke-width="0.3"/>
       
       <!-- Right Lung -->
       <path id="lung-right" class="organ" data-organ="lung-right" d="
-        M 128 110
-        Q 138 118, 140 135
-        Q 142 155, 136 170
-        Q 130 180, 118 178
-        Q 108 175, 106 160
-        Q 104 140, 110 125
-        Q 115 112, 128 110
-        Z"
-        fill="rgba(0,187,119,0.02)" 
-        stroke="rgba(0,187,119,0.1)" 
-        stroke-width="0.5"/>
+        M116 42 Q124 48, 125 58 Q126 68, 121 75 Q116 80, 109 78 Q104 75, 105 65 Q106 52, 111 45 Q114 42, 116 42 Z"
+        fill="rgba(0,187,119,0.03)" stroke="rgba(0,187,119,0.12)" stroke-width="0.3"/>
       
       <!-- Heart -->
       <path id="heart-organ" class="organ" data-organ="heart" d="
-        M 100 128
-        Q 92 122, 85 125
-        Q 78 130, 80 140
-        Q 82 152, 100 168
-        Q 118 152, 120 140
-        Q 122 130, 115 125
-        Q 108 122, 100 128
-        Z"
-        fill="rgba(0,187,119,0.04)" 
-        stroke="rgba(0,187,119,0.15)" 
-        stroke-width="0.5"/>
+        M103 50 Q98 46, 94 48 Q89 51, 90 58 Q91 65, 103 75 Q115 65, 116 58 Q117 51, 112 48 Q108 46, 103 50 Z"
+        fill="rgba(0,187,119,0.05)" stroke="rgba(0,187,119,0.18)" stroke-width="0.3"/>
     </g>
     
-    <!-- SOLAR PLEXUS - Stomach, Liver, Pancreas -->
+    <!-- SOLAR PLEXUS - Stomach, Liver, Pancreas (y=75-95) -->
     <g id="organ-solar" class="organ-group" data-region="solar">
-      <!-- Liver -->
+      <!-- Liver (right side) -->
       <path id="liver" class="organ" data-organ="liver" d="
-        M 105 182
-        Q 120 180, 132 188
-        Q 140 196, 138 208
-        Q 135 220, 120 224
-        Q 105 226, 100 216
-        Q 98 202, 105 182
-        Z"
-        fill="rgba(204,170,0,0.03)" 
-        stroke="rgba(204,170,0,0.12)" 
-        stroke-width="0.5"/>
+        M106 78 Q116 77, 122 82 Q127 88, 125 95 Q122 102, 112 104 Q104 105, 102 98 Q100 88, 106 78 Z"
+        fill="rgba(204,170,0,0.04)" stroke="rgba(204,170,0,0.14)" stroke-width="0.3"/>
       
-      <!-- Stomach -->
+      <!-- Stomach (left side) -->
       <path id="stomach" class="organ" data-organ="stomach" d="
-        M 78 188
-        Q 65 194, 64 208
-        Q 64 222, 76 230
-        Q 88 236, 98 228
-        Q 104 222, 102 210
-        Q 100 196, 88 190
-        Q 82 188, 78 188
-        Z"
-        fill="rgba(204,170,0,0.03)" 
-        stroke="rgba(204,170,0,0.12)" 
-        stroke-width="0.5"/>
+        M92 82 Q83 86, 82 94 Q82 102, 90 107 Q98 110, 104 105 Q108 100, 106 92 Q104 84, 96 82 Q94 81, 92 82 Z"
+        fill="rgba(204,170,0,0.04)" stroke="rgba(204,170,0,0.14)" stroke-width="0.3"/>
       
       <!-- Pancreas -->
-      <path id="pancreas" class="organ" data-organ="pancreas" d="
-        M 72 215 Q 90 210, 105 212 Q 118 214, 128 218"
-        fill="none" 
-        stroke="rgba(204,170,0,0.1)" 
-        stroke-width="2.5" 
-        stroke-linecap="round"/>
+      <path id="pancreas" class="organ" data-organ="pancreas" d="M86 98 Q98 94, 108 96 Q116 98, 122 100"
+        fill="none" stroke="rgba(204,170,0,0.12)" stroke-width="1.5" stroke-linecap="round"/>
     </g>
     
-    <!-- SACRAL - Kidneys, Intestines -->
+    <!-- SACRAL - Kidneys, Intestines (y=95-115) -->
     <g id="organ-sacral" class="organ-group" data-region="sacral">
       <!-- Left Kidney -->
       <ellipse id="kidney-left" class="organ" data-organ="kidney-left" 
-               cx="74" cy="205" rx="8" ry="14"
-               transform="rotate(-12, 74, 205)"
-               fill="rgba(221,102,0,0.03)" 
-               stroke="rgba(221,102,0,0.12)" 
-               stroke-width="0.5"/>
+        cx="88" cy="92" rx="5" ry="8" transform="rotate(-10, 88, 92)"
+        fill="rgba(221,102,0,0.04)" stroke="rgba(221,102,0,0.14)" stroke-width="0.3"/>
       
       <!-- Right Kidney -->
       <ellipse id="kidney-right" class="organ" data-organ="kidney-right" 
-               cx="126" cy="205" rx="8" ry="14"
-               transform="rotate(12, 126, 205)"
-               fill="rgba(221,102,0,0.03)" 
-               stroke="rgba(221,102,0,0.12)" 
-               stroke-width="0.5"/>
+        cx="118" cy="92" rx="5" ry="8" transform="rotate(10, 118, 92)"
+        fill="rgba(221,102,0,0.04)" stroke="rgba(221,102,0,0.14)" stroke-width="0.3"/>
       
-      <!-- Intestines / Lower abdomen -->
+      <!-- Intestines -->
       <ellipse id="intestines" class="organ" data-organ="intestines"
-               cx="100" cy="242" rx="28" ry="20"
-               fill="rgba(221,102,0,0.02)" 
-               stroke="rgba(221,102,0,0.1)" 
-               stroke-width="0.5"/>
-      
-      <!-- Intestine coil pattern -->
-      <path d="M 82 238 Q 90 234, 100 238 Q 110 234, 118 238" 
-            stroke="rgba(221,102,0,0.06)" stroke-width="0.5" fill="none"/>
-      <path d="M 85 248 Q 94 252, 100 248 Q 106 252, 115 248" 
-            stroke="rgba(221,102,0,0.06)" stroke-width="0.5" fill="none"/>
+        cx="103" cy="108" rx="14" ry="10"
+        fill="rgba(221,102,0,0.03)" stroke="rgba(221,102,0,0.12)" stroke-width="0.3"/>
+      <path d="M94 105 Q99 102, 103 105 Q107 102, 112 105" stroke="rgba(221,102,0,0.08)" stroke-width="0.3" fill="none"/>
+      <path d="M96 112 Q101 115, 103 112 Q105 115, 110 112" stroke="rgba(221,102,0,0.08)" stroke-width="0.3" fill="none"/>
     </g>
     
-    <!-- ROOT - Pelvic floor -->
+    <!-- ROOT - Pelvic floor (y=115-125) -->
     <g id="organ-root" class="organ-group" data-region="root">
       <ellipse id="pelvic-floor" class="organ" data-organ="pelvic"
-               cx="100" cy="268" rx="24" ry="14"
-               fill="rgba(204,51,51,0.03)" 
-               stroke="rgba(204,51,51,0.12)" 
-               stroke-width="0.5"/>
+        cx="103" cy="120" rx="12" ry="7"
+        fill="rgba(204,51,51,0.04)" stroke="rgba(204,51,51,0.14)" stroke-width="0.3"/>
     </g>
   </g>
   
   <!-- ENERGY GLOW LAYER - For activation effects -->
-  <g id="energy-layer" class="energy-layer" opacity="0">
-    <ellipse id="energy-crown" data-region="crown" cx="100" cy="35" rx="35" ry="28" fill="url(#glow-crown)"/>
-    <ellipse id="energy-thirdeye" data-region="thirdeye" cx="100" cy="55" rx="25" ry="18" fill="url(#glow-thirdeye)"/>
-    <ellipse id="energy-throat" data-region="throat" cx="100" cy="88" rx="28" ry="18" fill="url(#glow-throat)"/>
-    <ellipse id="energy-heart" data-region="heart" cx="100" cy="145" rx="48" ry="40" fill="url(#glow-heart)"/>
-    <ellipse id="energy-solar" data-region="solar" cx="100" cy="205" rx="45" ry="32" fill="url(#glow-solar)"/>
-    <ellipse id="energy-sacral" data-region="sacral" cx="100" cy="242" rx="38" ry="26" fill="url(#glow-sacral)"/>
-    <ellipse id="energy-root" data-region="root" cx="100" cy="268" rx="34" ry="22" fill="url(#glow-root)"/>
+  <g id="energy-layer" class="energy-layer">
+    <ellipse id="energy-crown" data-region="crown" cx="103" cy="6" rx="18" ry="14" fill="url(#glow-crown)" opacity="0"/>
+    <ellipse id="energy-thirdeye" data-region="thirdeye" cx="103" cy="14" rx="14" ry="10" fill="url(#glow-thirdeye)" opacity="0"/>
+    <ellipse id="energy-throat" data-region="throat" cx="103" cy="26" rx="16" ry="10" fill="url(#glow-throat)" opacity="0"/>
+    <ellipse id="energy-heart" data-region="heart" cx="103" cy="58" rx="28" ry="22" fill="url(#glow-heart)" opacity="0"/>
+    <ellipse id="energy-solar" data-region="solar" cx="103" cy="90" rx="26" ry="18" fill="url(#glow-solar)" opacity="0"/>
+    <ellipse id="energy-sacral" data-region="sacral" cx="103" cy="108" rx="22" ry="14" fill="url(#glow-sacral)" opacity="0"/>
+    <ellipse id="energy-root" data-region="root" cx="103" cy="120" rx="18" ry="12" fill="url(#glow-root)" opacity="0"/>
   </g>
   
   <!-- LABELS LAYER -->
   <g id="labels-layer" class="labels-layer" font-family="Arial, sans-serif">
     <!-- Chakra Labels -->
-    <text x="100" y="12" font-size="6" font-weight="500" text-anchor="middle" fill="#aa55dd" letter-spacing="0.05em">CROWN</text>
-    <text x="100" y="68" font-size="5" font-weight="500" text-anchor="middle" fill="#6655cc" letter-spacing="0.05em">THIRD EYE</text>
-    <text x="100" y="108" font-size="5" font-weight="500" text-anchor="middle" fill="#00aacc" letter-spacing="0.05em">THROAT</text>
-    <text x="38" y="148" font-size="5" font-weight="500" text-anchor="end" fill="#00bb77" letter-spacing="0.05em">HEART</text>
-    <line x1="40" y1="146" x2="72" y2="146" stroke="#00bb77" stroke-width="0.4" opacity="0.5"/>
-    <text x="100" y="178" font-size="5" font-weight="500" text-anchor="middle" fill="#ccaa00" letter-spacing="0.05em">SOLAR PLEXUS</text>
-    <text x="100" y="258" font-size="5" font-weight="500" text-anchor="middle" fill="#dd6600" letter-spacing="0.05em">SACRAL</text>
-    <text x="100" y="288" font-size="5" font-weight="500" text-anchor="middle" fill="#cc3333" letter-spacing="0.05em">ROOT</text>
+    <text class="chakra-label" x="103" y="-4" font-size="4" font-weight="500" text-anchor="middle" fill="#aa55dd" letter-spacing="0.03em">CROWN</text>
+    <text class="chakra-label" x="103" y="20" font-size="3" font-weight="500" text-anchor="middle" fill="#6655cc" letter-spacing="0.03em">THIRD EYE</text>
+    <text class="chakra-label" x="103" y="35" font-size="3" font-weight="500" text-anchor="middle" fill="#00aacc" letter-spacing="0.03em">THROAT</text>
+    <text class="chakra-label" x="70" y="60" font-size="3.5" font-weight="500" text-anchor="end" fill="#00bb77" letter-spacing="0.03em">HEART</text>
+    <line x1="71" y1="59" x2="82" y2="59" stroke="#00bb77" stroke-width="0.3" opacity="0.5"/>
+    <text class="chakra-label" x="103" y="82" font-size="3" font-weight="500" text-anchor="middle" fill="#ccaa00" letter-spacing="0.03em">SOLAR PLEXUS</text>
+    <text class="chakra-label" x="103" y="125" font-size="3.5" font-weight="500" text-anchor="middle" fill="#dd6600" letter-spacing="0.03em">SACRAL</text>
+    <text class="chakra-label" x="103" y="135" font-size="3.5" font-weight="500" text-anchor="middle" fill="#cc3333" letter-spacing="0.03em">ROOT</text>
     
-    <!-- Organ Labels (smaller) -->
-    <text x="100" y="42" font-size="4" text-anchor="middle" fill="rgba(170,85,221,0.7)">Brain</text>
-    <text x="100" y="58" font-size="4" text-anchor="middle" fill="rgba(102,85,204,0.6)">Pineal</text>
-    <text x="100" y="96" font-size="4" text-anchor="middle" fill="rgba(0,170,204,0.6)">Thyroid</text>
-    <text x="72" y="148" font-size="4" text-anchor="middle" fill="rgba(0,187,119,0.6)">Lung</text>
-    <text x="128" y="148" font-size="4" text-anchor="middle" fill="rgba(0,187,119,0.6)">Lung</text>
-    <text x="100" y="155" font-size="7" text-anchor="middle" fill="rgba(0,187,119,0.7)">♥</text>
-    <text x="78" y="218" font-size="4" text-anchor="middle" fill="rgba(204,170,0,0.6)">Stomach</text>
-    <text x="122" y="200" font-size="4" text-anchor="middle" fill="rgba(204,170,0,0.6)">Liver</text>
-    <text x="100" y="222" font-size="4" text-anchor="middle" fill="rgba(204,170,0,0.5)">Pancreas</text>
-    <text x="74" y="198" font-size="4" text-anchor="middle" fill="rgba(221,102,0,0.6)">Kidney</text>
-    <text x="126" y="198" font-size="4" text-anchor="middle" fill="rgba(221,102,0,0.6)">Kidney</text>
-    <text x="100" y="246" font-size="4" text-anchor="middle" fill="rgba(221,102,0,0.6)">Intestines</text>
-    <text x="100" y="272" font-size="4" text-anchor="middle" fill="rgba(204,51,51,0.6)">Pelvic</text>
+    <!-- Organ Labels -->
+    <text class="organ-label" x="103" y="10" font-size="2.5" text-anchor="middle" fill="rgba(170,85,221,0.7)">Brain</text>
+    <text class="organ-label" x="103" y="16" font-size="2.5" text-anchor="middle" fill="rgba(102,85,204,0.6)">Pineal</text>
+    <text class="organ-label" x="103" y="28" font-size="2.5" text-anchor="middle" fill="rgba(0,170,204,0.6)">Thyroid</text>
+    <text class="organ-label" x="88" y="62" font-size="2.5" text-anchor="middle" fill="rgba(0,187,119,0.6)">Lung</text>
+    <text class="organ-label" x="118" y="62" font-size="2.5" text-anchor="middle" fill="rgba(0,187,119,0.6)">Lung</text>
+    <text class="organ-label" x="103" y="65" font-size="4" text-anchor="middle" fill="rgba(0,187,119,0.7)">♥</text>
+    <text class="organ-label" x="92" y="98" font-size="2.5" text-anchor="middle" fill="rgba(204,170,0,0.6)">Stomach</text>
+    <text class="organ-label" x="115" y="90" font-size="2.5" text-anchor="middle" fill="rgba(204,170,0,0.6)">Liver</text>
+    <text class="organ-label" x="103" y="100" font-size="2.5" text-anchor="middle" fill="rgba(204,170,0,0.5)">Pancreas</text>
+    <text class="organ-label" x="88" y="88" font-size="2.5" text-anchor="middle" fill="rgba(221,102,0,0.6)">Kidney</text>
+    <text class="organ-label" x="118" y="88" font-size="2.5" text-anchor="middle" fill="rgba(221,102,0,0.6)">Kidney</text>
+    <text class="organ-label" x="103" y="110" font-size="2.5" text-anchor="middle" fill="rgba(221,102,0,0.6)">Intestines</text>
+    <text class="organ-label" x="103" y="122" font-size="2.5" text-anchor="middle" fill="rgba(204,51,51,0.6)">Pelvic</text>
   </g>
   
 </svg>
