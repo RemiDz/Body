@@ -156,8 +156,8 @@ export class Controls {
     // Particles toggle
     const particlesToggle = document.getElementById('particlesToggle');
     if (particlesToggle) {
-      particlesToggle.addEventListener('change', (e) => {
-        this.emitSettingsChange({ particlesEnabled: e.target.checked });
+      this.setupToggle(particlesToggle, (checked) => {
+        this.emitSettingsChange({ particlesEnabled: checked });
       });
     }
     
@@ -174,8 +174,7 @@ export class Controls {
         if (metaTheme) metaTheme.setAttribute('content', '#f5f2ed');
       }
       
-      themeToggle.addEventListener('change', (e) => {
-        const isLight = e.target.checked;
+      this.setupToggle(themeToggle, (isLight) => {
         document.body.classList.toggle('light-theme', isLight);
         
         // Update meta theme color
@@ -190,6 +189,34 @@ export class Controls {
         this.emitSettingsChange({ theme: isLight ? 'light' : 'dark' });
       });
     }
+  }
+  
+  /**
+   * Setup toggle with iOS-compatible touch handling
+   */
+  setupToggle(toggleElement, callback) {
+    let touchHandled = false;
+    
+    // Handle touch events for iOS
+    toggleElement.addEventListener('touchstart', (e) => {
+      touchHandled = false;
+    }, { passive: true });
+    
+    toggleElement.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      touchHandled = true;
+      // Toggle the checkbox
+      toggleElement.checked = !toggleElement.checked;
+      callback(toggleElement.checked);
+    }, { passive: false });
+    
+    // Handle regular change event (for desktop)
+    toggleElement.addEventListener('change', (e) => {
+      if (!touchHandled) {
+        callback(e.target.checked);
+      }
+      touchHandled = false;
+    });
   }
   
   /**

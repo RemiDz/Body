@@ -807,7 +807,16 @@ body {
 }
 
 .toggle {
-  display: none;
+  /* Keep checkbox accessible but hidden visually */
+  position: absolute;
+  opacity: 0;
+  width: 50px;
+  height: 30px;
+  cursor: pointer;
+  z-index: 2;
+  /* iOS touch handling */
+  -webkit-appearance: none;
+  touch-action: manipulation;
 }
 
 .toggle-label {
@@ -818,6 +827,10 @@ body {
   border-radius: var(--radius-pill);
   cursor: pointer;
   transition: background var(--duration-fast) var(--ease-out-fast);
+  /* iOS touch handling */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: none; /* Let checkbox handle clicks */
 }
 
 .toggle-label::after {
@@ -839,6 +852,14 @@ body {
 .toggle:checked + .toggle-label::after {
   transform: translateX(24px);
   background: var(--status-listening);
+}
+
+/* Make toggle easier to tap on mobile */
+@media (pointer: coarse) {
+  .toggle {
+    width: 60px;
+    height: 36px;
+  }
 }
 
 .settings-footer {
