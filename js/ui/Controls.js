@@ -45,8 +45,9 @@ export class Controls {
   addTapHandler(element, handler) {
     if (!element) return;
     
-    let touchMoved = false;
-    let touchHandled = false;
+    // Track touch interaction state
+    let touchMoved = false;      // Has the touch moved (scroll/swipe)?
+    let touchHandled = false;    // Has this touch interaction been processed?
     
     // Touch events for iOS
     element.addEventListener('touchstart', (e) => {
@@ -65,7 +66,7 @@ export class Controls {
         // Call handler synchronously to maintain user gesture context for iOS
         handler(e);
         // Reset flag after a short delay (longer than click event delay)
-        const timeoutId = setTimeout(() => { 
+        const timeoutId = setTimeout(() => {
           touchHandled = false;
           // Remove timeout from tracking set
           this.touchTimeouts.delete(timeoutId);
