@@ -1,0 +1,316 @@
+/**
+ * Resonance Body Map - Animations
+ * All keyframe animations and transitions
+ */
+
+/* ===== AMBIENT ORB ANIMATIONS ===== */
+@keyframes floatOrb1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(40px, 30px) scale(1.05);
+  }
+  50% {
+    transform: translate(20px, -20px) scale(0.98);
+  }
+  75% {
+    transform: translate(-30px, 40px) scale(1.02);
+  }
+}
+
+@keyframes floatOrb2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(-50px, -40px) scale(1.08);
+  }
+  66% {
+    transform: translate(30px, 20px) scale(0.95);
+  }
+}
+
+@keyframes floatOrb3 {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, -55%) scale(1.1);
+    opacity: 0.7;
+  }
+}
+
+/* ===== STATUS INDICATOR ===== */
+@keyframes statusPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.8;
+  }
+}
+
+/* ===== OVERLAY ANIMATIONS ===== */
+@keyframes overlayEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ===== FREQUENCY DISPLAY GLOW ===== */
+@keyframes freqGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px var(--glow-color, transparent));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px var(--glow-color, transparent));
+  }
+}
+
+/* ===== IDLE BREATHING ANIMATION ===== */
+@keyframes idleBreathing {
+  0%, 100% {
+    opacity: 0.02;
+  }
+  50% {
+    opacity: 0.05;
+  }
+}
+
+/* Regional breathing with stagger */
+@keyframes regionBreathing {
+  0%, 100% {
+    opacity: var(--breath-min, 0);
+  }
+  50% {
+    opacity: var(--breath-max, 0.03);
+  }
+}
+
+/* ===== BODY REGION PULSE ===== */
+@keyframes regionPulse {
+  0%, 100% {
+    opacity: var(--pulse-base, 0.5);
+  }
+  50% {
+    opacity: var(--pulse-peak, 1);
+  }
+}
+
+/* ===== PARTICLE ANIMATIONS ===== */
+@keyframes particleRise {
+  0% {
+    opacity: var(--particle-opacity, 0.8);
+    transform: translate(var(--start-x, 0), var(--start-y, 0)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--end-x, 0), var(--end-y, -50px)) scale(0.5);
+  }
+}
+
+@keyframes particleFade {
+  0% {
+    opacity: var(--particle-opacity, 0.8);
+  }
+  60% {
+    opacity: calc(var(--particle-opacity, 0.8) * 0.5);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ===== GLOW PULSE ANIMATION ===== */
+@keyframes glowPulse {
+  0%, 100% {
+    opacity: var(--glow-opacity, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    opacity: calc(var(--glow-opacity, 0.5) * 1.2);
+    transform: scale(1.02);
+  }
+}
+
+/* ===== ENERGY WAVE ===== */
+@keyframes energyWave {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* ===== SHIMMER EFFECT ===== */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* ===== FADE IN/OUT ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* ===== SCALE ANIMATIONS ===== */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+/* ===== BUTTON FEEDBACK ===== */
+@keyframes buttonPress {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.97);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ===== LOADING SPINNER ===== */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== IDLE STATE CLASSES ===== */
+.idle-breathing .energy-layer ellipse {
+  animation: idleBreathing var(--duration-breathing) var(--ease-in-out-gentle) infinite;
+}
+
+/* Staggered breathing for each region */
+.idle-breathing #energy-root {
+  animation-delay: 0s;
+}
+
+.idle-breathing #energy-sacral {
+  animation-delay: 0.5s;
+}
+
+.idle-breathing #energy-solar {
+  animation-delay: 1s;
+}
+
+.idle-breathing #energy-heart {
+  animation-delay: 1.5s;
+}
+
+.idle-breathing #energy-throat {
+  animation-delay: 2s;
+}
+
+.idle-breathing #energy-thirdeye {
+  animation-delay: 2.5s;
+}
+
+.idle-breathing #energy-crown {
+  animation-delay: 3s;
+}
+
+/* ===== UTILITY ANIMATION CLASSES ===== */
+.animate-in {
+  animation: fadeInUp var(--duration-smooth) var(--ease-out-smooth) forwards;
+}
+
+.animate-out {
+  animation: fadeOut var(--duration-smooth) var(--ease-out-smooth) forwards;
+}
+
+.animate-pulse {
+  animation: regionPulse 1.5s var(--ease-in-out-gentle) infinite;
+}
+
+.animate-glow {
+  animation: glowPulse 2s var(--ease-in-out-gentle) infinite;
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .ambient-orb {
+    animation: none;
+    opacity: 0.3;
+  }
+  
+  .status-indicator.listening {
+    animation: none;
+  }
+  
+  .idle-breathing .energy-layer ellipse {
+    animation: none;
+  }
+}

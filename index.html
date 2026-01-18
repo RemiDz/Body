@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Resonance">
+    <meta name="description" content="Real-time sound frequency visualization for the body - a tool for sound healing demonstrations">
+    <meta name="theme-color" content="#08080c">
+    
+    <title>Resonance Body Map</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/icon-32.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Quicksand:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+    <div class="app-container" id="app">
+        <!-- Ambient Background -->
+        <div class="ambient-bg" aria-hidden="true">
+            <div class="ambient-orb orb-1"></div>
+            <div class="ambient-orb orb-2"></div>
+            <div class="ambient-orb orb-3"></div>
+            <div class="vignette"></div>
+        </div>
+        
+        <!-- Title -->
+        <h1 class="app-title">Resonance</h1>
+        
+        <!-- Body Visualization Container -->
+        <div class="body-container" id="bodyContainer">
+            <!-- Body SVG will be injected here -->
+            <div class="body-wrapper" id="bodyWrapper"></div>
+            
+            <!-- Particles Container -->
+            <div class="particles-container" id="particlesContainer" aria-hidden="true"></div>
+        </div>
+        
+        <!-- Frequency Display -->
+        <div class="frequency-display" id="frequencyDisplay">
+            <div class="freq-value" id="freqValue">
+                <span class="freq-number">---</span>
+                <span class="freq-unit">Hz</span>
+            </div>
+            <div class="freq-region" id="freqRegion"></div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="controls">
+            <div class="status-indicator" id="statusIndicator" aria-label="Status"></div>
+            <button class="btn btn-primary" id="mainBtn" aria-label="Begin Listening">
+                <span class="btn-text">Begin Listening</span>
+            </button>
+            <button class="btn btn-icon" id="settingsBtn" aria-label="Settings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Welcome Overlay -->
+        <div class="overlay welcome-overlay" id="welcomeOverlay">
+            <div class="overlay-content">
+                <div class="overlay-icon">
+                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                        <circle cx="30" cy="30" r="28" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+                        <circle cx="30" cy="30" r="20" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+                        <circle cx="30" cy="30" r="12" stroke="currentColor" stroke-width="1" opacity="0.7"/>
+                        <circle cx="30" cy="30" r="4" fill="currentColor"/>
+                    </svg>
+                </div>
+                <h2 class="overlay-title">Resonance</h2>
+                <p class="overlay-text">
+                    This visualization maps sound frequencies to the human body in real-time. 
+                    Play your instruments and watch as different tones illuminate different regions.
+                </p>
+                <p class="overlay-subtext">
+                    Based on traditional chakra systems — an artistic interpretation for demonstration.
+                </p>
+                <button class="btn btn-primary btn-large" id="allowMicBtn">
+                    <span class="btn-text">Allow Microphone</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Settings Panel -->
+        <div class="overlay settings-overlay hidden" id="settingsOverlay">
+            <div class="overlay-content settings-content">
+                <div class="settings-header">
+                    <h3 class="settings-title">Settings</h3>
+                    <button class="btn btn-icon btn-close" id="closeSettingsBtn" aria-label="Close settings">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="settings-group">
+                    <label class="settings-label">Microphone Sensitivity</label>
+                    <div class="slider-container">
+                        <input type="range" id="gainSlider" class="slider" min="0.1" max="3" step="0.1" value="1">
+                        <span class="slider-value" id="gainValue">1.0x</span>
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <label class="settings-label">Noise Threshold</label>
+                    <div class="slider-container">
+                        <input type="range" id="noiseSlider" class="slider" min="-70" max="-40" step="1" value="-55">
+                        <span class="slider-value" id="noiseValue">-55 dB</span>
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <label class="settings-label">Glow Intensity</label>
+                    <div class="slider-container">
+                        <input type="range" id="glowSlider" class="slider" min="0.3" max="2" step="0.1" value="1">
+                        <span class="slider-value" id="glowValue">1.0x</span>
+                    </div>
+                </div>
+                
+                <div class="settings-group">
+                    <label class="settings-label">Particles</label>
+                    <div class="toggle-container">
+                        <input type="checkbox" id="particlesToggle" class="toggle" checked>
+                        <label for="particlesToggle" class="toggle-label"></label>
+                    </div>
+                </div>
+                
+                <div class="settings-footer">
+                    <p class="settings-info">
+                        Resonance Body Map v1.0<br>
+                        <span class="settings-note">An artistic visualization based on traditional energy systems</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Error Overlay -->
+        <div class="overlay error-overlay hidden" id="errorOverlay">
+            <div class="overlay-content">
+                <div class="overlay-icon error-icon">
+                    <svg width="50" height="50" viewBox="0 0 50 50" fill="none">
+                        <circle cx="25" cy="25" r="23" stroke="currentColor" stroke-width="2"/>
+                        <line x1="18" y1="18" x2="32" y2="32" stroke="currentColor" stroke-width="2"/>
+                        <line x1="32" y1="18" x2="18" y2="32" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                </div>
+                <h2 class="overlay-title">Microphone Access Required</h2>
+                <p class="overlay-text" id="errorMessage">
+                    Please allow microphone access to use this visualization.
+                </p>
+                <button class="btn btn-primary" id="retryBtn">
+                    <span class="btn-text">Try Again</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="js/config.js" type="module"></script>
+    <script src="js/app.js" type="module"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('SW registered:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('SW registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

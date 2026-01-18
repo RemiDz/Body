@@ -1,0 +1,146 @@
+/**
+ * Resonance Body Map - Theme Variables
+ * Color palette, typography, and design tokens
+ */
+
+:root {
+  /* ===== BACKGROUND COLORS ===== */
+  --bg-deep: #08080c;
+  --bg-mid: #0d0d14;
+  --bg-surface: #12121a;
+  --bg-glow: rgba(60, 40, 100, 0.08);
+  --bg-overlay: rgba(0, 0, 0, 0.85);
+  
+  /* ===== REGION COLORS (Chakra-inspired) ===== */
+  --color-root: #cc3333;
+  --color-root-glow: #ff4444;
+  --color-sacral: #dd6600;
+  --color-sacral-glow: #ff8800;
+  --color-solar: #ccaa00;
+  --color-solar-glow: #ffcc00;
+  --color-heart: #00bb77;
+  --color-heart-glow: #00ff99;
+  --color-throat: #00aacc;
+  --color-throat-glow: #00ddff;
+  --color-thirdeye: #6655cc;
+  --color-thirdeye-glow: #8877ff;
+  --color-crown: #aa55dd;
+  --color-crown-glow: #cc77ff;
+  
+  /* ===== TEXT COLORS ===== */
+  --text-dim: rgba(255, 255, 255, 0.35);
+  --text-mid: rgba(255, 255, 255, 0.55);
+  --text-bright: rgba(255, 255, 255, 0.9);
+  --text-pure: #ffffff;
+  
+  /* ===== UI COLORS ===== */
+  --ui-border: rgba(255, 255, 255, 0.08);
+  --ui-border-hover: rgba(255, 255, 255, 0.15);
+  --ui-border-active: rgba(255, 255, 255, 0.25);
+  --ui-surface: rgba(255, 255, 255, 0.03);
+  --ui-surface-hover: rgba(255, 255, 255, 0.06);
+  --ui-surface-active: rgba(255, 255, 255, 0.1);
+  
+  /* ===== STATUS COLORS ===== */
+  --status-idle: rgba(255, 255, 255, 0.2);
+  --status-listening: #00ff88;
+  --status-error: #ff4455;
+  
+  /* ===== TYPOGRAPHY ===== */
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Quicksand', -apple-system, sans-serif;
+  
+  /* Font Sizes - Responsive */
+  --font-title: clamp(1.1rem, 2.5vw, 1.4rem);
+  --font-frequency: clamp(2.8rem, 9vw, 4.5rem);
+  --font-frequency-unit: clamp(0.9rem, 2.5vw, 1.1rem);
+  --font-label: clamp(0.6rem, 1.5vw, 0.75rem);
+  --font-button: 0.75rem;
+  --font-body-text: 0.9rem;
+  --font-small: 0.7rem;
+  
+  /* Font Weights */
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  
+  /* Letter Spacing */
+  --tracking-title: 0.4em;
+  --tracking-label: 0.25em;
+  --tracking-button: 0.15em;
+  --tracking-body: 0.02em;
+  
+  /* ===== SPACING ===== */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  
+  /* Safe Areas */
+  --safe-top: env(safe-area-inset-top, 20px);
+  --safe-bottom: env(safe-area-inset-bottom, 20px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  
+  /* ===== BORDERS ===== */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 9999px;
+  
+  /* ===== SHADOWS ===== */
+  --shadow-glow-sm: 0 0 10px;
+  --shadow-glow-md: 0 0 20px;
+  --shadow-glow-lg: 0 0 40px;
+  --shadow-glow-xl: 0 0 80px;
+  
+  /* ===== ANIMATION TIMING ===== */
+  --duration-instant: 50ms;
+  --duration-fast: 150ms;
+  --duration-smooth: 300ms;
+  --duration-slow: 500ms;
+  --duration-ambient: 3000ms;
+  --duration-breathing: 4000ms;
+  
+  /* Easing Functions */
+  --ease-out-fast: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-gentle: cubic-bezier(0.45, 0, 0.55, 1);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  /* ===== Z-INDEX LAYERS ===== */
+  --z-bg: -1;
+  --z-body: 1;
+  --z-particles: 2;
+  --z-ui: 10;
+  --z-overlay: 100;
+  --z-modal: 200;
+  
+  /* ===== GLOW SETTINGS ===== */
+  --glow-intensity: 1;
+  --glow-blur-core: 4px;
+  --glow-blur-mid: 15px;
+  --glow-blur-ambient: 40px;
+}
+
+/* ===== HIGH CONTRAST MODE ===== */
+@media (prefers-contrast: high) {
+  :root {
+    --text-dim: rgba(255, 255, 255, 0.5);
+    --text-mid: rgba(255, 255, 255, 0.7);
+    --ui-border: rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-smooth: 0ms;
+    --duration-slow: 0ms;
+    --duration-ambient: 0ms;
+    --duration-breathing: 0ms;
+  }
+}
