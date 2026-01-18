@@ -197,6 +197,42 @@ export class Controls {
         this.emitSettingsChange({ theme: isLight ? 'light' : 'dark' });
       });
     }
+    
+    // Harmonic Cascade toggle
+    const cascadeToggle = document.getElementById('cascade-toggle');
+    if (cascadeToggle) {
+      this.setupToggle(cascadeToggle, (checked) => {
+        this.emitSettingsChange({ cascadeEnabled: checked });
+      });
+    }
+    
+    // Cymatics Pattern toggle
+    const cymaticsToggle = document.getElementById('cymatics-toggle');
+    if (cymaticsToggle) {
+      this.setupToggle(cymaticsToggle, (checked) => {
+        this.emitSettingsChange({ cymaticsEnabled: checked });
+      });
+    }
+    
+    // Cymatics Position buttons
+    const cymaticsCenterBtn = document.getElementById('cymatics-center');
+    const cymaticsRegionBtn = document.getElementById('cymatics-region');
+    
+    if (cymaticsCenterBtn) {
+      this.addTapHandler(cymaticsCenterBtn, () => {
+        cymaticsCenterBtn.classList.add('active');
+        cymaticsRegionBtn?.classList.remove('active');
+        this.emitSettingsChange({ cymaticsPosition: 'center' });
+      });
+    }
+    
+    if (cymaticsRegionBtn) {
+      this.addTapHandler(cymaticsRegionBtn, () => {
+        cymaticsRegionBtn.classList.add('active');
+        cymaticsCenterBtn?.classList.remove('active');
+        this.emitSettingsChange({ cymaticsPosition: 'region' });
+      });
+    }
   }
   
   /**

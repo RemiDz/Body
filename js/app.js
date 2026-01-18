@@ -145,50 +145,6 @@ class ResonanceApp {
       positionMode: 'center'  // or 'region' to follow active chakra
     });
     this.cymaticsOverlay.init('.body-container');
-    
-    // Setup toggle handlers for new visualizations
-    this.setupVisualizationToggles();
-  }
-  
-  /**
-   * Setup toggle handlers for visualization features
-   */
-  setupVisualizationToggles() {
-    // Cascade toggle
-    const cascadeToggle = document.getElementById('cascade-toggle');
-    if (cascadeToggle) {
-      cascadeToggle.addEventListener('change', (e) => {
-        this.harmonicCascade?.setEnabled(e.target.checked);
-      });
-    }
-    
-    // Cymatics toggle
-    const cymaticsToggle = document.getElementById('cymatics-toggle');
-    if (cymaticsToggle) {
-      cymaticsToggle.addEventListener('change', (e) => {
-        this.cymaticsOverlay?.setEnabled(e.target.checked);
-      });
-    }
-    
-    // Cymatics position buttons
-    const cymaticsCenterBtn = document.getElementById('cymatics-center');
-    const cymaticsRegionBtn = document.getElementById('cymatics-region');
-    
-    if (cymaticsCenterBtn) {
-      cymaticsCenterBtn.addEventListener('click', () => {
-        this.cymaticsOverlay?.setPositionMode('center');
-        cymaticsCenterBtn.classList.add('active');
-        cymaticsRegionBtn?.classList.remove('active');
-      });
-    }
-    
-    if (cymaticsRegionBtn) {
-      cymaticsRegionBtn.addEventListener('click', () => {
-        this.cymaticsOverlay?.setPositionMode('region');
-        cymaticsRegionBtn.classList.add('active');
-        cymaticsCenterBtn?.classList.remove('active');
-      });
-    }
   }
   
   /**
@@ -454,6 +410,21 @@ class ResonanceApp {
     
     if (changes.particlesEnabled !== undefined) {
       this.calibration?.setParticlesEnabled(changes.particlesEnabled);
+    }
+    
+    // Harmonic Cascade toggle
+    if (changes.cascadeEnabled !== undefined) {
+      this.harmonicCascade?.setEnabled(changes.cascadeEnabled);
+    }
+    
+    // Cymatics Pattern toggle
+    if (changes.cymaticsEnabled !== undefined) {
+      this.cymaticsOverlay?.setEnabled(changes.cymaticsEnabled);
+    }
+    
+    // Cymatics Position mode
+    if (changes.cymaticsPosition !== undefined) {
+      this.cymaticsOverlay?.setPositionMode(changes.cymaticsPosition);
     }
     
     // Save settings
