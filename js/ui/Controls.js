@@ -23,6 +23,11 @@ export class Controls {
     this.allowMicBtn = document.getElementById('allowMicBtn');
     this.retryBtn = document.getElementById('retryBtn');
     this.closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    this.fullscreenBtn = document.getElementById('fullscreenBtn');
+    this.appContainer = document.getElementById('app');
+    
+    // Fullscreen state
+    this.isFullscreen = false;
     
     // Callbacks
     this.onStart = null;
@@ -31,6 +36,9 @@ export class Controls {
     
     // Bind event handlers
     this.bindEvents();
+    
+    // Setup fullscreen
+    this.setupFullscreen();
   }
   
   /**
@@ -217,6 +225,104 @@ export class Controls {
       }
       touchHandled = false;
     });
+  }
+  
+  /**
+   * Setup fullscreen button and listeners
+   */
+  setupFullscreen() {
+    if (!this.fullscreenBtn) return;
+    
+    // Add tap handler for fullscreen button
+    this.addTapHandler(this.fullscreenBtn, () => this.toggleFullscreen());
+    
+    // Listen for fullscreen change events (including Escape key)
+    document.addEventListener('fullscreenchange', () => this.onFullscreenChange());
+    document.addEventListener('webkitfullscreenchange', () => this.onFullscreenChange());
+    document.addEventListener('mozfullscreenchange', () => this.onFullscreenChange());
+    document.addEventListener('MSFullscreenChange', () => this.onFullscreenChange());
+  }
+  
+  /**
+   * Toggle fullscreen mode
+   */
+  async toggleFullscreen() {
+    const doc = document;
+    const elem = document.documentElement;
+    
+    if (!this.isFullscreen) {
+      // Enter fullscreen
+      try {
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          // Safari/iOS
+          await elem.webkitRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+          await elem.mozRequestFullScreen();
+        } else if (elem.msRequestFullscreen) {
+          await elem.msRequestFullscreen();
+        } else {
+          // Fullscreen not supported - simulate with CSS only
+          console.log('Fullscreen API not supported, using CSS fallback');
+          this.setFullscreenUI(true);
+        }
+      } catch (err) {
+        console.warn('Fullscreen request failed:', err);
+        // Use CSS-only fallback
+        this.setFullscreenUI(true);
+      }
+    } else {
+      // Exit fullscreen
+      try {
+        if (doc.exitFullscreen) {
+          await doc.exitFullscreen();
+        } else if (doc.webkitExitFullscreen) {
+          await doc.webkitExitFullscreen();
+        } else if (doc.mozCancelFullScreen) {
+          await doc.mozCancelFullScreen();
+        } else if (doc.msExitFullscreen) {
+          await doc.msExitFullscreen();
+        } else {
+          // Fallback
+          this.setFullscreenUI(false);
+        }
+      } catch (err) {
+        console.warn('Exit fullscreen failed:', err);
+        this.setFullscreenUI(false);
+      }
+    }
+  }
+  
+  /**
+   * Handle fullscreen change events
+   */
+  onFullscreenChange() {
+    const isNowFullscreen = !!(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    );
+    
+    this.setFullscreenUI(isNowFullscreen);
+  }
+  
+  /**
+   * Update UI for fullscreen state
+   */
+  setFullscreenUI(isFullscreen) {
+    this.isFullscreen = isFullscreen;
+    
+    if (this.appContainer) {
+      if (isFullscreen) {
+        this.appContainer.classList.add('fullscreen-active');
+      } else {
+        this.appContainer.classList.remove('fullscreen-active');
+      }
+    }
+    
+    console.log('Fullscreen:', isFullscreen ? 'ON' : 'OFF');
   }
   
   /**

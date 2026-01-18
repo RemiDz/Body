@@ -133,6 +133,96 @@ body {
   opacity: 0.7;
   margin-bottom: var(--space-md);
   z-index: var(--z-ui);
+  transition: opacity var(--duration-smooth) var(--ease-out-smooth);
+}
+
+/* ===== FULLSCREEN BUTTON ===== */
+.btn-fullscreen {
+  position: fixed;
+  top: calc(var(--safe-top) + var(--space-md));
+  right: var(--space-md);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  color: var(--text-dim);
+  cursor: pointer;
+  z-index: var(--z-ui);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: 
+    background var(--duration-fast) var(--ease-out-fast),
+    border-color var(--duration-fast) var(--ease-out-fast),
+    color var(--duration-fast) var(--ease-out-fast),
+    opacity var(--duration-smooth) var(--ease-out-smooth);
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-fullscreen:hover,
+.btn-fullscreen:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--text-mid);
+  outline: none;
+}
+
+.btn-fullscreen:active {
+  transform: scale(0.95);
+}
+
+/* Icon visibility */
+.btn-fullscreen .icon-expand {
+  display: block;
+}
+
+.btn-fullscreen .icon-compress {
+  display: none;
+}
+
+/* Fullscreen active state */
+.fullscreen-active .btn-fullscreen .icon-expand {
+  display: none;
+}
+
+.fullscreen-active .btn-fullscreen .icon-compress {
+  display: block;
+}
+
+/* Fullscreen mode: hide title and settings */
+.fullscreen-active .app-title {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.fullscreen-active #settingsBtn {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Fullscreen mode: reposition fullscreen button */
+.fullscreen-active .btn-fullscreen {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Light theme fullscreen button */
+.light-theme .btn-fullscreen {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: var(--text-dim);
+}
+
+.light-theme .btn-fullscreen:hover,
+.light-theme .btn-fullscreen:focus {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: var(--text-mid);
 }
 
 /* ===== BODY CONTAINER ===== */
