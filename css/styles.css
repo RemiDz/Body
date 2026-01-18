@@ -339,6 +339,9 @@ body {
   align-items: center;
   gap: var(--space-lg);
   z-index: var(--z-ui);
+  /* Ensure controls are always visible */
+  flex-shrink: 0;
+  padding-bottom: var(--space-sm);
 }
 
 /* Status Indicator */
@@ -629,6 +632,56 @@ body {
   .overlay-text {
     font-size: 0.8rem;
     margin-bottom: var(--space-sm);
+  }
+}
+
+/* iPhone controls visibility fix */
+@media (max-width: 430px) {
+  .app-container {
+    padding-bottom: calc(var(--safe-bottom) + var(--space-xl));
+  }
+  
+  .controls {
+    gap: var(--space-md);
+    padding-bottom: var(--space-md);
+  }
+  
+  /* Reduce body height to make room for controls */
+  .body-wrapper {
+    max-height: 58vh;
+  }
+  
+  .body-container {
+    flex: 1;
+    min-height: 0;
+  }
+  
+  /* Smaller frequency display */
+  .frequency-display {
+    margin: var(--space-xs) 0;
+  }
+  
+  .freq-value {
+    font-size: clamp(2rem, 7vw, 3rem);
+  }
+  
+  /* Make title smaller */
+  .app-title {
+    font-size: 0.9rem;
+    margin-bottom: var(--space-xs);
+  }
+}
+
+/* iPhone with notch - extra safe area handling */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  @media (max-width: 430px) {
+    .app-container {
+      padding-bottom: calc(env(safe-area-inset-bottom, 20px) + var(--space-lg));
+    }
+    
+    .controls {
+      margin-bottom: env(safe-area-inset-bottom, 0px);
+    }
   }
 }
 
