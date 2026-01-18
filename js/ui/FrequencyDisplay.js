@@ -1,10 +1,17 @@
 /**
  * Resonance Body Map - Frequency Display
- * Shows dominant frequency and region label
+ * Shows dominant frequency, musical note, and region label
  */
 
 import { FREQUENCY_REGIONS, VISUAL_CONFIG } from '../config.js';
 import { clamp, lerp, MovingAverage } from '../utils/math.js';
+
+// Musical note names (using sharps, not flats)
+const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+// Reference: A4 = 440 Hz
+const A4_FREQUENCY = 440;
+const A4_MIDI = 69; // MIDI note number for A4
 
 export class FrequencyDisplay {
   constructor(options = {}) {
@@ -15,11 +22,13 @@ export class FrequencyDisplay {
     this.container = document.getElementById('frequencyDisplay');
     this.valueElement = document.getElementById('freqValue');
     this.numberElement = this.valueElement?.querySelector('.freq-number');
+    this.noteElement = document.getElementById('freqNote');
     this.regionElement = document.getElementById('freqRegion');
     
     // State
     this.currentFrequency = 0;
     this.displayedFrequency = 0;
+    this.currentNote = '';
     this.currentColor = 'rgba(255, 255, 255, 0.9)';
     this.currentGlow = 'none';
     this.isVisible = false;
@@ -30,6 +39,48 @@ export class FrequencyDisplay {
     // Animation
     this.animationFrame = null;
     this.lastUpdateTime = 0;
+  }
+  
+  /**
+   * Convert frequency (Hz) to musical note name
+   * Uses A4 = 440 Hz as reference
+   * @param {number} frequency - Frequency in Hz
+   * @returns {string} Note name (e.g., "A4", "C#3", "F#5")
+   */
+  frequencyToNote(frequency) {
+    if (frequency <= 0) return '';
+    
+    // Calculate MIDI note number from frequency
+    // Formula: n = 12 * log2(f / 440) + 69
+    const midiNote = Math.round(12 * Math.log2(frequency / A4_FREQUENCY) + A4_MIDI);
+    
+    // Clamp to valid range (C1 = 24 to C7 = 96)
+    if (midiNote < 24 || midiNote > 96) return '';
+    
+    // Get note name and octave
+    const noteIndex = ((midiNote % 12) + 12) % 12; // Handle negative modulo
+    const octave = Math.floor(midiNote / 12) - 1;
+    
+    return NOTE_NAMES[noteIndex] + octave;
+  }
+  
+  /**
+   * Get the expected frequency for a note (for display purposes)
+   * @param {string} noteName - Note name (e.g., "A4")
+   * @returns {number} Frequency in Hz
+   */
+  noteToFrequency(noteName) {
+    const match = noteName.match(/^([A-G]#?)(\d)$/);
+    if (!match) return 0;
+    
+    const note = match[1];
+    const octave = parseInt(match[2]);
+    const noteIndex = NOTE_NAMES.indexOf(note);
+    
+    if (noteIndex === -1) return 0;
+    
+    const midiNote = (octave + 1) * 12 + noteIndex;
+    return A4_FREQUENCY * Math.pow(2, (midiNote - A4_MIDI) / 12);
   }
   
   /**
@@ -66,6 +117,9 @@ export class FrequencyDisplay {
         }
       }
       
+      // Update musical note
+      this.updateNote(smoothedFreq);
+      
       // Update region label
       if (regionLabel && this.regionElement) {
         this.regionElement.textContent = regionLabel;
@@ -75,10 +129,32 @@ export class FrequencyDisplay {
       // Animate number transition
       this.animateNumber();
     } else {
-      // Hide region label
+      // Hide region label and note
       if (this.regionElement) {
         this.regionElement.classList.remove('visible');
       }
+      if (this.noteElement) {
+        this.noteElement.classList.remove('visible');
+      }
+    }
+  }
+  
+  /**
+   * Update the musical note display
+   * @param {number} frequency - Frequency in Hz
+   */
+  updateNote(frequency) {
+    const note = this.frequencyToNote(frequency);
+    
+    if (note && note !== this.currentNote) {
+      this.currentNote = note;
+      
+      if (this.noteElement) {
+        this.noteElement.textContent = note;
+        this.noteElement.classList.add('visible');
+      }
+    } else if (!note && this.noteElement) {
+      this.noteElement.classList.remove('visible');
     }
   }
   
@@ -128,13 +204,19 @@ export class FrequencyDisplay {
   setColor(color, intensity = 1) {
     this.currentColor = color;
     
+    // Calculate glow based on intensity
+    const glowSize = Math.round(intensity * 30);
+    const glow = `0 0 ${glowSize}px ${color}, 0 0 ${glowSize * 1.5}px ${color}`;
+    
     if (this.valueElement) {
       this.valueElement.style.color = color;
-      
-      // Calculate glow based on intensity
-      const glowSize = Math.round(intensity * 30);
-      const glow = `0 0 ${glowSize}px ${color}, 0 0 ${glowSize * 1.5}px ${color}`;
       this.valueElement.style.textShadow = glow;
+    }
+    
+    // Apply same color to note element
+    if (this.noteElement) {
+      this.noteElement.style.color = color;
+      this.noteElement.style.textShadow = glow;
     }
   }
   
@@ -163,6 +245,10 @@ export class FrequencyDisplay {
     
     if (frequency > 0) {
       this.setVisibility(true);
+      
+      // Update note
+      this.updateNote(frequency);
+      
       const region = this.getRegionForFrequency(frequency);
       if (region) {
         this.setColor(region.config.glowHex, 1);
@@ -192,6 +278,7 @@ export class FrequencyDisplay {
   reset() {
     this.hide();
     this.displayedFrequency = 0;
+    this.currentNote = '';
     this.frequencySmoother.reset();
     
     if (this.valueElement) {
@@ -201,6 +288,13 @@ export class FrequencyDisplay {
     
     if (this.numberElement) {
       this.numberElement.textContent = '---';
+    }
+    
+    if (this.noteElement) {
+      this.noteElement.textContent = '';
+      this.noteElement.style.color = '';
+      this.noteElement.style.textShadow = '';
+      this.noteElement.classList.remove('visible');
     }
     
     if (this.regionElement) {
