@@ -310,8 +310,7 @@
     <text class="chakra-label" x="103" y="-4" font-size="4" font-weight="500" text-anchor="middle" fill="#aa55dd" letter-spacing="0.03em">CROWN</text>
     <text class="chakra-label" x="103" y="20" font-size="3" font-weight="500" text-anchor="middle" fill="#6655cc" letter-spacing="0.03em">THIRD EYE</text>
     <text class="chakra-label" x="103" y="35" font-size="3" font-weight="500" text-anchor="middle" fill="#00aacc" letter-spacing="0.03em">THROAT</text>
-    <text class="chakra-label" x="70" y="60" font-size="3.5" font-weight="500" text-anchor="end" fill="#00bb77" letter-spacing="0.03em">HEART</text>
-    <line x1="71" y1="59" x2="82" y2="59" stroke="#00bb77" stroke-width="0.3" opacity="0.5"/>
+    <text class="chakra-label" x="103" y="46" font-size="3.5" font-weight="500" text-anchor="middle" fill="#00bb77" letter-spacing="0.03em">HEART</text>
     <text class="chakra-label" x="103" y="82" font-size="3" font-weight="500" text-anchor="middle" fill="#ccaa00" letter-spacing="0.03em">SOLAR PLEXUS</text>
     <text class="chakra-label" x="103" y="125" font-size="3.5" font-weight="500" text-anchor="middle" fill="#dd6600" letter-spacing="0.03em">SACRAL</text>
     <text class="chakra-label" x="103" y="135" font-size="3.5" font-weight="500" text-anchor="middle" fill="#cc3333" letter-spacing="0.03em">ROOT</text>
