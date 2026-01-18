@@ -64,6 +64,9 @@ export class BodyRenderer {
       
       this.isLoaded = true;
       
+      // Start idle breathing animation on load - makes body feel alive
+      this.startIdleAnimation();
+      
       if (this.onLoad) {
         this.onLoad();
       }

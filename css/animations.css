@@ -76,13 +76,36 @@
   }
 }
 
-/* ===== IDLE BREATHING ANIMATION ===== */
+/* ===== IDLE BREATHING WAVE ANIMATION ===== */
+/* 8-second wave from root to crown - makes body feel alive in silence */
+@keyframes idleBreathingWave {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.08;
+  }
+  30% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.08;
+  }
+  70% {
+    opacity: 0.03;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Simpler breathing for fallback */
 @keyframes idleBreathing {
   0%, 100% {
     opacity: 0.02;
   }
   50% {
-    opacity: 0.05;
+    opacity: 0.08;
   }
 }
 
@@ -92,7 +115,7 @@
     opacity: var(--breath-min, 0);
   }
   50% {
-    opacity: var(--breath-max, 0.03);
+    opacity: var(--breath-max, 0.05);
   }
 }
 
@@ -241,37 +264,39 @@
 }
 
 /* ===== IDLE STATE CLASSES ===== */
+/* 8-second breathing wave from root (bottom) to crown (top) */
 .idle-breathing .energy-layer ellipse {
-  animation: idleBreathing var(--duration-breathing) var(--ease-in-out-gentle) infinite;
+  animation: idleBreathingWave 8s ease-in-out infinite;
 }
 
-/* Staggered breathing for each region */
+/* Staggered breathing delays - wave travels from root to crown over 8 seconds */
+/* Each region offset by ~1.14s (8s / 7 regions) */
 .idle-breathing #energy-root {
   animation-delay: 0s;
 }
 
 .idle-breathing #energy-sacral {
-  animation-delay: 0.5s;
+  animation-delay: 1.14s;
 }
 
 .idle-breathing #energy-solar {
-  animation-delay: 1s;
+  animation-delay: 2.28s;
 }
 
 .idle-breathing #energy-heart {
-  animation-delay: 1.5s;
+  animation-delay: 3.42s;
 }
 
 .idle-breathing #energy-throat {
-  animation-delay: 2s;
+  animation-delay: 4.56s;
 }
 
 .idle-breathing #energy-thirdeye {
-  animation-delay: 2.5s;
+  animation-delay: 5.7s;
 }
 
 .idle-breathing #energy-crown {
-  animation-delay: 3s;
+  animation-delay: 6.84s;
 }
 
 /* ===== UTILITY ANIMATION CLASSES ===== */
