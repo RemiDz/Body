@@ -40,10 +40,12 @@ export class Controls {
     if (!element) return;
     
     let touchMoved = false;
+    let touchHandled = false;
     
     // Touch events for iOS
     element.addEventListener('touchstart', (e) => {
       touchMoved = false;
+      touchHandled = false;
     }, { passive: true });
     
     element.addEventListener('touchmove', () => {
@@ -52,14 +54,21 @@ export class Controls {
     
     element.addEventListener('touchend', (e) => {
       if (!touchMoved) {
-        e.preventDefault();
+        // Call handler first (critical for iOS user gesture timing)
+        touchHandled = true;
         handler(e);
+        // Then prevent default to avoid duplicate click event
+        e.preventDefault();
       }
     }, { passive: false });
     
-    // Click event for desktop
+    // Click event for desktop and as fallback
     element.addEventListener('click', (e) => {
-      handler(e);
+      // Avoid double-firing if touch was already handled
+      if (!touchHandled) {
+        handler(e);
+      }
+      touchHandled = false;
     });
   }
   
