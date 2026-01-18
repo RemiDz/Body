@@ -68,7 +68,8 @@ export class Controls {
       if (!touchHandled) {
         handler(e);
       }
-      touchHandled = false;
+      // Reset flag after event loop completes to ensure proper sequencing
+      setTimeout(() => { touchHandled = false; }, 0);
     });
   }
   
