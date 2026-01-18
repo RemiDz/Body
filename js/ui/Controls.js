@@ -40,10 +40,12 @@ export class Controls {
     if (!element) return;
     
     let touchMoved = false;
+    let touchHandled = false;
     
     // Touch events for iOS
     element.addEventListener('touchstart', (e) => {
       touchMoved = false;
+      touchHandled = false;
     }, { passive: true });
     
     element.addEventListener('touchmove', () => {
@@ -52,13 +54,21 @@ export class Controls {
     
     element.addEventListener('touchend', (e) => {
       if (!touchMoved) {
-        e.preventDefault();
+        // Mark as handled to prevent click event from also firing
+        touchHandled = true;
+        // Call handler synchronously to maintain user gesture context for iOS
         handler(e);
+        // Reset flag after a short delay (longer than click event delay)
+        setTimeout(() => { touchHandled = false; }, 500);
       }
-    }, { passive: false });
+    }, { passive: true });
     
-    // Click event for desktop
+    // Click event for desktop and as fallback
     element.addEventListener('click', (e) => {
+      // Prevent double-firing if touch event already handled this interaction
+      if (touchHandled) {
+        return;
+      }
       handler(e);
     });
   }
