@@ -249,6 +249,11 @@ class ResonanceApp {
     const deltaTime = now - this.lastFrameTime;
     this.lastFrameTime = now;
     
+    // iOS Safari: Ensure audio context stays active
+    if (this.audioAnalyzer?.audioContext?.state === 'suspended') {
+      this.audioAnalyzer.audioContext.resume();
+    }
+    
     // Analyze audio
     const audioData = this.audioAnalyzer?.analyze();
     
@@ -508,5 +513,19 @@ document.addEventListener('touchend', (e) => {
   }
   lastTouchEnd = now;
 }, { passive: false });
+
+// iOS Safari: Resume audio context on any touch/click
+// This is critical for iOS which suspends audio contexts aggressively
+const resumeAudioContext = () => {
+  if (app.audioAnalyzer?.audioContext?.state === 'suspended') {
+    app.audioAnalyzer.audioContext.resume().then(() => {
+      console.log('AudioContext resumed via user interaction');
+    });
+  }
+};
+
+document.addEventListener('touchstart', resumeAudioContext, { passive: true });
+document.addEventListener('touchend', resumeAudioContext, { passive: true });
+document.addEventListener('click', resumeAudioContext);
 
 export default app;

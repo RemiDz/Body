@@ -4,13 +4,16 @@
  */
 
 // ===== AUDIO CONFIGURATION =====
+// Detect iOS for platform-specific settings
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
 export const AUDIO_CONFIG = {
   fftSize: 8192,                    // High resolution for low frequencies
   smoothingTimeConstant: 0.8,       // Smooth transitions
   minDecibels: -70,
   maxDecibels: -10,
-  noiseFloor: -55,                  // Below this = silence
-  peakThreshold: 0.3,               // Minimum intensity to register
+  noiseFloor: isIOS ? -65 : -55,    // iOS: Lower threshold (more sensitive)
+  peakThreshold: isIOS ? 0.2 : 0.3, // iOS: Lower threshold
   sampleRate: 44100,                // Standard audio
   minFrequency: 40,                 // Hz - lowest frequency to analyze
   maxFrequency: 2000                // Hz - highest frequency to analyze

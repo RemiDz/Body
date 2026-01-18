@@ -50,21 +50,44 @@ export class AudioAnalyzer {
         await this.audioContext.resume();
       }
       
-      // Request microphone access with specific constraints for best quality
-      this.stream = await navigator.mediaDevices.getUserMedia({
+      // iOS Safari: Set up state change listener to auto-resume
+      this.audioContext.addEventListener('statechange', () => {
+        console.log('AudioContext state:', this.audioContext.state);
+        if (this.audioContext.state === 'suspended') {
+          this.audioContext.resume();
+        }
+      });
+      
+      // Request microphone access
+      // iOS Safari: Use minimal constraints for better compatibility
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      
+      const audioConstraints = isIOS ? {
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+          // iOS-specific: Request higher sample rate
+          sampleRate: 48000
+        }
+      } : {
         audio: {
           echoCancellation: false,
           noiseSuppression: false,
           autoGainControl: false
         }
-      });
+      };
+      
+      this.stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
       
       // Create source from microphone stream
       this.source = this.audioContext.createMediaStreamSource(this.stream);
       
       // Create gain node for sensitivity adjustment
       this.gainNode = this.audioContext.createGain();
-      this.gainNode.gain.value = 1.0;
+      // iOS Safari: Boost gain by default (iOS has lower input levels)
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      this.gainNode.gain.value = isIOS ? 2.5 : 1.0;
       
       // Create analyzer node
       this.analyser = this.audioContext.createAnalyser();
