@@ -1,10 +1,11 @@
 /**
- * Cymatics Overlay Visualization
- * Procedurally generates Chladni-inspired patterns based on frequency
+ * Cymatics Overlay Visualization - FIXED VERSION
+ * Renders beautiful circular mandala patterns inspired by cymatics
+ * Uses polar coordinates for smooth, organic shapes
  */
 
 import { FREQUENCY_REGIONS } from '../config.js';
-import { lerp, clamp, smoothstep } from '../utils/math.js';
+import { lerp, clamp } from '../utils/math.js';
 
 export class CymaticsOverlay {
   constructor(options = {}) {
@@ -12,18 +13,17 @@ export class CymaticsOverlay {
     this.ctx = null;
     this.enabled = true;
     
-    // Configuration
+    // Configuration - much smaller and subtler
     this.config = {
-      size: 150,                 // Base size of the pattern
-      maxSize: 200,              // Maximum size with amplitude
-      resolution: 100,           // Grid resolution for pattern calculation
-      lineWidth: 1.5,
-      glowBlur: 8,
-      rotationSpeed: 0.0005,     // Slow rotation
-      morphSpeed: 0.002,         // Speed of pattern morphing
-      fadeSpeed: 0.1,
-      positionMode: 'center',    // 'center', 'region', or 'floating'
-      opacity: 0.6,
+      baseSize: 80,              // Much smaller base size
+      maxSize: 120,              // Maximum size with amplitude
+      lineWidth: 1,
+      glowBlur: 6,
+      rotationSpeed: 0.0003,     // Slower rotation
+      morphSpeed: 0.001,
+      breathSpeed: 0.003,        // Breathing animation
+      opacity: 0.5,              // More subtle
+      positionMode: 'bottom',    // 'bottom', 'center', 'region'
       ...options
     };
     
@@ -33,23 +33,23 @@ export class CymaticsOverlay {
     this.currentAmplitude = 0;
     this.targetAmplitude = 0;
     this.rotation = 0;
-    this.morphOffset = 0;
+    this.morphPhase = 0;
+    this.breathPhase = 0;
     this.currentRegion = null;
-    this.patternCache = null;
-    this.lastPatternFreq = 0;
+    this.currentColor = '#00ff99';
     
-    // Position for pattern (relative to canvas)
-    this.position = { x: 0.5, y: 0.5 };
+    // Fixed position at bottom of body (below root chakra area)
+    this.position = { x: 0.5, y: 0.75 };
     
-    // Region center positions
+    // Region positions if following
     this.regionPositions = {
-      root: { y: 0.88, x: 0.5 },
+      root: { y: 0.85, x: 0.5 },
       sacral: { y: 0.78, x: 0.5 },
-      solar: { y: 0.67, x: 0.5 },
+      solar: { y: 0.68, x: 0.5 },
       heart: { y: 0.52, x: 0.5 },
-      throat: { y: 0.35, x: 0.5 },
-      thirdEye: { y: 0.22, x: 0.5 },
-      crown: { y: 0.10, x: 0.5 }
+      throat: { y: 0.38, x: 0.5 },
+      thirdEye: { y: 0.25, x: 0.5 },
+      crown: { y: 0.12, x: 0.5 }
     };
   }
   
@@ -63,7 +63,6 @@ export class CymaticsOverlay {
       return false;
     }
     
-    // Create canvas overlay
     this.canvas = document.createElement('canvas');
     this.canvas.className = 'cymatics-overlay-canvas';
     this.canvas.style.cssText = `
@@ -74,6 +73,7 @@ export class CymaticsOverlay {
       height: 100%;
       pointer-events: none;
       z-index: 5;
+      opacity: 0.7;
     `;
     
     container.style.position = 'relative';
@@ -87,9 +87,6 @@ export class CymaticsOverlay {
     return true;
   }
   
-  /**
-   * Resize canvas
-   */
   resize() {
     if (!this.canvas) return;
     
@@ -98,14 +95,10 @@ export class CymaticsOverlay {
     
     this.canvas.width = rect.width * dpr;
     this.canvas.height = rect.height * dpr;
-    
     this.ctx.scale(dpr, dpr);
     
     this.width = rect.width;
     this.height = rect.height;
-    
-    // Invalidate pattern cache on resize
-    this.patternCache = null;
   }
   
   /**
@@ -114,34 +107,31 @@ export class CymaticsOverlay {
   update(frequency, amplitude, regionName, deltaTime = 16.67) {
     if (!this.enabled) return;
     
-    // Smooth frequency transitions
+    // Smooth transitions
     this.targetFrequency = frequency || 0;
     this.targetAmplitude = amplitude || 0;
     
-    const freqSmooth = 0.1;
-    const ampSmooth = 0.15;
+    this.currentFrequency = lerp(this.currentFrequency, this.targetFrequency, 0.08);
+    this.currentAmplitude = lerp(this.currentAmplitude, this.targetAmplitude, 0.12);
     
-    this.currentFrequency = lerp(this.currentFrequency, this.targetFrequency, freqSmooth);
-    this.currentAmplitude = lerp(this.currentAmplitude, this.targetAmplitude, ampSmooth);
-    
-    // Update animation offsets
+    // Animation phases
     this.rotation += this.config.rotationSpeed * deltaTime;
-    this.morphOffset += this.config.morphSpeed * deltaTime;
+    this.morphPhase += this.config.morphSpeed * deltaTime;
+    this.breathPhase += this.config.breathSpeed * deltaTime;
     
-    // Update region and position
-    if (regionName && this.regionPositions[regionName]) {
+    // Update region and color
+    if (regionName && FREQUENCY_REGIONS[regionName]) {
       this.currentRegion = regionName;
+      this.currentColor = FREQUENCY_REGIONS[regionName].glowHex || '#00ff99';
+      
+      // Update position if following region
       if (this.config.positionMode === 'region') {
         const targetPos = this.regionPositions[regionName];
-        this.position.x = lerp(this.position.x, targetPos.x, 0.05);
-        this.position.y = lerp(this.position.y, targetPos.y, 0.05);
+        if (targetPos) {
+          this.position.x = lerp(this.position.x, targetPos.x, 0.03);
+          this.position.y = lerp(this.position.y, targetPos.y, 0.03);
+        }
       }
-    }
-    
-    // Regenerate pattern if frequency changed significantly
-    if (Math.abs(this.currentFrequency - this.lastPatternFreq) > 10) {
-      this.patternCache = null;
-      this.lastPatternFreq = this.currentFrequency;
     }
   }
   
@@ -153,232 +143,135 @@ export class CymaticsOverlay {
     
     this.ctx.clearRect(0, 0, this.width, this.height);
     
-    if (this.currentAmplitude < 0.05 || this.currentFrequency < 30) return;
+    // Only render if there's sound
+    if (this.currentAmplitude < 0.08 || this.currentFrequency < 30) return;
     
-    // Calculate pattern parameters from frequency
-    const params = this.frequencyToChladniParams(this.currentFrequency);
+    // Calculate pattern parameters
+    const params = this.getPatternParams(this.currentFrequency);
     
-    // Calculate size based on amplitude
-    const baseSize = this.config.size;
-    const size = lerp(baseSize * 0.8, this.config.maxSize, this.currentAmplitude);
+    // Calculate size with breathing effect
+    const breathScale = 1 + Math.sin(this.breathPhase) * 0.1 * this.currentAmplitude;
+    const baseSize = lerp(this.config.baseSize, this.config.maxSize, this.currentAmplitude);
+    const size = baseSize * breathScale;
     
-    // Get position
-    const centerX = this.position.x * this.width;
-    const centerY = this.position.y * this.height;
+    // Get center position
+    const cx = this.position.x * this.width;
+    const cy = this.position.y * this.height;
     
-    // Get color from current region
-    const color = this.currentRegion ? 
-      FREQUENCY_REGIONS[this.currentRegion]?.glowHex || '#ffffff' : 
-      '#ffffff';
-    
-    // Draw the pattern
-    this.drawChladniPattern(centerX, centerY, size, params, color);
+    // Draw the mandala pattern
+    this.drawMandala(cx, cy, size, params);
   }
   
   /**
-   * Convert frequency to Chladni pattern parameters
-   * Lower frequencies = simpler patterns (lower m, n values)
-   * Higher frequencies = more complex patterns (higher m, n values)
+   * Convert frequency to pattern parameters
    */
-  frequencyToChladniParams(frequency) {
-    // Map frequency to pattern complexity
-    // Root (30-98 Hz) -> m=1-2, n=1-2
-    // Crown (740-2000 Hz) -> m=6-10, n=6-10
+  getPatternParams(frequency) {
+    // Normalize frequency to 0-1 range
+    const normalized = clamp((frequency - 30) / (1200 - 30), 0, 1);
     
-    const normalized = clamp((frequency - 30) / (1500 - 30), 0, 1);
+    // Pattern complexity increases with frequency
+    // Low freq: 3-4 petals, simple
+    // High freq: 8-12 petals, complex
+    const basePetals = Math.floor(3 + normalized * 9);
     
-    // Base m and n values
-    const baseM = 1 + normalized * 7;
-    const baseN = 1 + normalized * 7;
-    
-    // Add subtle morphing
-    const morphM = Math.sin(this.morphOffset) * 0.5;
-    const morphN = Math.cos(this.morphOffset * 1.3) * 0.5;
+    // Add subtle variation with morph phase
+    const petalVariation = Math.sin(this.morphPhase) * 0.5;
     
     return {
-      m: baseM + morphM,
-      n: baseN + morphN,
-      // Add variation based on frequency bands
-      symmetry: Math.floor(3 + normalized * 5),
-      complexity: normalized
+      petals: basePetals,
+      layers: Math.floor(2 + normalized * 3),      // 2-5 concentric layers
+      complexity: normalized,
+      innerRadius: 0.2 + normalized * 0.1,         // Inner hole size
+      petalDepth: 0.3 + normalized * 0.3,          // How deep petals go
+      waviness: petalVariation,
+      secondaryPetals: basePetals * 2              // Secondary pattern
     };
   }
   
   /**
-   * Draw a Chladni-inspired pattern
-   * Based on the equation: cos(m*π*x/L)*cos(n*π*y/L) - cos(n*π*x/L)*cos(m*π*y/L) = 0
+   * Draw a beautiful mandala pattern
    */
-  drawChladniPattern(cx, cy, size, params, color) {
-    const { m, n, symmetry, complexity } = params;
-    const resolution = this.config.resolution;
-    const halfSize = size / 2;
+  drawMandala(cx, cy, size, params) {
+    const { petals, layers, complexity, innerRadius, petalDepth, waviness, secondaryPetals } = params;
     
     this.ctx.save();
     this.ctx.translate(cx, cy);
     this.ctx.rotate(this.rotation);
     
-    // Draw glow layer
-    this.ctx.globalAlpha = this.config.opacity * 0.3 * this.currentAmplitude;
-    this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = this.config.lineWidth + this.config.glowBlur;
-    this.ctx.filter = `blur(${this.config.glowBlur}px)`;
+    const alpha = this.config.opacity * this.currentAmplitude;
     
-    this.drawPatternPaths(halfSize, m, n, resolution);
-    
-    // Draw core pattern
+    // Draw outer glow
+    this.ctx.globalAlpha = alpha * 0.2;
+    this.ctx.filter = `blur(${this.config.glowBlur * 2}px)`;
+    this.drawFlower(size * 1.1, petals, innerRadius, petalDepth, this.currentColor);
     this.ctx.filter = 'none';
-    this.ctx.globalAlpha = this.config.opacity * this.currentAmplitude;
-    this.ctx.lineWidth = this.config.lineWidth;
     
-    this.drawPatternPaths(halfSize, m, n, resolution);
-    
-    // Draw radial symmetry lines for additional complexity
-    if (complexity > 0.3) {
-      this.drawSymmetryLines(halfSize, symmetry, color, complexity);
+    // Draw main layers from outside to inside
+    for (let layer = layers; layer >= 1; layer--) {
+      const layerSize = size * (layer / layers);
+      const layerAlpha = alpha * (0.3 + (layer / layers) * 0.5);
+      const layerPetals = layer === layers ? petals : secondaryPetals;
+      
+      // Glow layer
+      this.ctx.globalAlpha = layerAlpha * 0.4;
+      this.ctx.filter = `blur(${this.config.glowBlur}px)`;
+      this.drawFlower(layerSize, layerPetals, innerRadius, petalDepth + waviness * 0.1, this.currentColor);
+      
+      // Core layer
+      this.ctx.filter = 'none';
+      this.ctx.globalAlpha = layerAlpha * 0.8;
+      this.drawFlower(layerSize, layerPetals, innerRadius, petalDepth + waviness * 0.1, this.currentColor);
     }
     
-    // Draw center point
-    this.ctx.globalAlpha = this.config.opacity * 0.8 * this.currentAmplitude;
-    this.ctx.fillStyle = color;
+    // Draw center circle
+    this.ctx.globalAlpha = alpha * 0.6;
+    this.ctx.fillStyle = this.currentColor;
     this.ctx.beginPath();
-    this.ctx.arc(0, 0, 3, 0, Math.PI * 2);
+    this.ctx.arc(0, 0, size * innerRadius * 0.5, 0, Math.PI * 2);
     this.ctx.fill();
+    
+    // Draw outer ring
+    this.ctx.globalAlpha = alpha * 0.3;
+    this.ctx.strokeStyle = this.currentColor;
+    this.ctx.lineWidth = 1;
+    this.ctx.beginPath();
+    this.ctx.arc(0, 0, size, 0, Math.PI * 2);
+    this.ctx.stroke();
     
     this.ctx.restore();
   }
   
   /**
-   * Draw the Chladni pattern nodal lines
+   * Draw a flower/petal pattern using polar coordinates
    */
-  drawPatternPaths(halfSize, m, n, resolution) {
-    const step = (halfSize * 2) / resolution;
-    const threshold = 0.15; // Threshold for nodal line detection
-    
-    this.ctx.beginPath();
-    
-    for (let i = 0; i < resolution; i++) {
-      for (let j = 0; j < resolution; j++) {
-        const x = -halfSize + i * step;
-        const y = -halfSize + j * step;
-        
-        // Chladni equation
-        const value = this.chladniValue(x / halfSize, y / halfSize, m, n);
-        
-        if (Math.abs(value) < threshold) {
-          // Point is on or near a nodal line
-          this.ctx.moveTo(x, y);
-          this.ctx.arc(x, y, 1, 0, Math.PI * 2);
-        }
-      }
-    }
-    
-    this.ctx.stroke();
-    
-    // Also draw continuous contour lines
-    this.drawContourLines(halfSize, m, n, resolution);
-  }
-  
-  /**
-   * Calculate Chladni pattern value at a point
-   */
-  chladniValue(x, y, m, n) {
-    const pi = Math.PI;
-    return Math.cos(m * pi * x) * Math.cos(n * pi * y) - 
-           Math.cos(n * pi * x) * Math.cos(m * pi * y);
-  }
-  
-  /**
-   * Draw contour lines using marching squares approximation
-   */
-  drawContourLines(halfSize, m, n, resolution) {
-    const step = (halfSize * 2) / (resolution / 2);
-    
-    this.ctx.beginPath();
-    
-    for (let i = 0; i < resolution / 2 - 1; i++) {
-      for (let j = 0; j < resolution / 2 - 1; j++) {
-        const x = -halfSize + i * step;
-        const y = -halfSize + j * step;
-        
-        // Sample corners
-        const v00 = this.chladniValue(x / halfSize, y / halfSize, m, n);
-        const v10 = this.chladniValue((x + step) / halfSize, y / halfSize, m, n);
-        const v01 = this.chladniValue(x / halfSize, (y + step) / halfSize, m, n);
-        const v11 = this.chladniValue((x + step) / halfSize, (y + step) / halfSize, m, n);
-        
-        // Check for zero crossings and draw line segments
-        this.drawMarchingSquare(x, y, step, v00, v10, v01, v11);
-      }
-    }
-    
-    this.ctx.stroke();
-  }
-  
-  /**
-   * Draw marching square cell
-   */
-  drawMarchingSquare(x, y, step, v00, v10, v01, v11) {
-    // Simplified marching squares - check for sign changes
-    const edges = [];
-    
-    if (v00 * v10 < 0) {
-      const t = v00 / (v00 - v10);
-      edges.push({ x: x + t * step, y: y });
-    }
-    if (v10 * v11 < 0) {
-      const t = v10 / (v10 - v11);
-      edges.push({ x: x + step, y: y + t * step });
-    }
-    if (v01 * v11 < 0) {
-      const t = v01 / (v01 - v11);
-      edges.push({ x: x + t * step, y: y + step });
-    }
-    if (v00 * v01 < 0) {
-      const t = v00 / (v00 - v01);
-      edges.push({ x: x, y: y + t * step });
-    }
-    
-    if (edges.length >= 2) {
-      this.ctx.moveTo(edges[0].x, edges[0].y);
-      this.ctx.lineTo(edges[1].x, edges[1].y);
-    }
-  }
-  
-  /**
-   * Draw radial symmetry lines for added visual interest
-   */
-  drawSymmetryLines(halfSize, symmetry, color, complexity) {
-    this.ctx.globalAlpha = this.config.opacity * 0.2 * this.currentAmplitude * complexity;
+  drawFlower(radius, petals, innerRatio, depth, color) {
     this.ctx.strokeStyle = color;
-    this.ctx.lineWidth = 0.5;
-    
-    const angleStep = (Math.PI * 2) / symmetry;
-    
+    this.ctx.lineWidth = this.config.lineWidth;
     this.ctx.beginPath();
-    for (let i = 0; i < symmetry; i++) {
-      const angle = i * angleStep;
-      const innerRadius = halfSize * 0.1;
-      const outerRadius = halfSize * 0.9;
+    
+    const points = petals * 20; // Smooth curve
+    const innerRadius = radius * innerRatio;
+    const petalAmplitude = radius * depth;
+    
+    for (let i = 0; i <= points; i++) {
+      const angle = (i / points) * Math.PI * 2;
       
-      this.ctx.moveTo(
-        Math.cos(angle) * innerRadius,
-        Math.sin(angle) * innerRadius
-      );
-      this.ctx.lineTo(
-        Math.cos(angle) * outerRadius,
-        Math.sin(angle) * outerRadius
-      );
+      // Create petal shape using sine waves
+      // r = innerRadius + amplitude * |sin(petals * angle / 2)|
+      const petalWave = Math.pow(Math.abs(Math.sin(petals * angle / 2)), 0.8);
+      const r = innerRadius + petalAmplitude * petalWave;
+      
+      const x = Math.cos(angle) * r;
+      const y = Math.sin(angle) * r;
+      
+      if (i === 0) {
+        this.ctx.moveTo(x, y);
+      } else {
+        this.ctx.lineTo(x, y);
+      }
     }
-    this.ctx.stroke();
     
-    // Draw concentric circles
-    this.ctx.beginPath();
-    const numCircles = Math.floor(2 + complexity * 4);
-    for (let i = 1; i <= numCircles; i++) {
-      const radius = (halfSize * i) / (numCircles + 1);
-      this.ctx.moveTo(radius, 0);
-      this.ctx.arc(0, 0, radius, 0, Math.PI * 2);
-    }
+    this.ctx.closePath();
     this.ctx.stroke();
   }
   
@@ -387,9 +280,24 @@ export class CymaticsOverlay {
    */
   setPositionMode(mode) {
     this.config.positionMode = mode;
-    if (mode === 'center') {
-      this.position = { x: 0.5, y: 0.5 };
+    
+    switch (mode) {
+      case 'center':
+        this.position = { x: 0.5, y: 0.5 };
+        break;
+      case 'bottom':
+        this.position = { x: 0.5, y: 0.75 };
+        break;
+      // 'region' mode updates position dynamically
     }
+  }
+  
+  /**
+   * Set size
+   */
+  setSize(baseSize, maxSize) {
+    this.config.baseSize = baseSize;
+    this.config.maxSize = maxSize || baseSize * 1.5;
   }
   
   /**
@@ -402,9 +310,6 @@ export class CymaticsOverlay {
     }
   }
   
-  /**
-   * Clean up
-   */
   destroy() {
     if (this.canvas && this.canvas.parentElement) {
       this.canvas.parentElement.removeChild(this.canvas);

@@ -1134,6 +1134,7 @@ body {
   pointer-events: none;
   z-index: 5;
   mix-blend-mode: screen;
+  opacity: 0.7;
 }
 
 /* Toggle control styling */
