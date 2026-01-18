@@ -35,15 +35,20 @@ export class Controls {
   
   /**
    * Helper to add both click and touch events (iOS compatibility)
+   * Handles iPhone Safari quirks with touch events
    */
   addTapHandler(element, handler) {
     if (!element) return;
     
+    let touchHandled = false;
     let touchMoved = false;
     
-    // Touch events for iOS
+    // Touch events for iOS - handle BOTH touchstart for immediate response
     element.addEventListener('touchstart', (e) => {
       touchMoved = false;
+      touchHandled = false;
+      // Add visual feedback
+      element.classList.add('btn-pressed');
     }, { passive: true });
     
     element.addEventListener('touchmove', () => {
@@ -51,15 +56,31 @@ export class Controls {
     }, { passive: true });
     
     element.addEventListener('touchend', (e) => {
+      element.classList.remove('btn-pressed');
+      
       if (!touchMoved) {
+        touchHandled = true;
         e.preventDefault();
-        handler(e);
+        // Small delay to ensure iOS processes the event
+        setTimeout(() => {
+          handler(e);
+        }, 10);
       }
     }, { passive: false });
     
-    // Click event for desktop
+    element.addEventListener('touchcancel', () => {
+      element.classList.remove('btn-pressed');
+      touchMoved = false;
+    }, { passive: true });
+    
+    // Click event for desktop (and fallback for iOS)
     element.addEventListener('click', (e) => {
-      handler(e);
+      // Only fire if touch didn't already handle it
+      if (!touchHandled) {
+        handler(e);
+      }
+      // Reset for next interaction
+      touchHandled = false;
     });
   }
   
@@ -186,10 +207,22 @@ export class Controls {
    * Handle start request
    */
   handleStart() {
+    console.log('Controls: handleStart called');
     this.setState(this.states.REQUESTING_MIC);
     
+    // Update button text to show we're working
+    if (this.allowMicBtn) {
+      const btnText = this.allowMicBtn.querySelector('.btn-text');
+      if (btnText) {
+        btnText.textContent = 'Requesting...';
+      }
+    }
+    
     if (this.onStart) {
+      console.log('Controls: calling onStart callback');
       this.onStart();
+    } else {
+      console.warn('Controls: no onStart callback set');
     }
   }
   
@@ -270,6 +303,7 @@ export class Controls {
    * Called when microphone access is granted
    */
   onMicrophoneGranted() {
+    console.log('Controls: microphone granted');
     this.setState(this.states.LISTENING);
     this.hideWelcome();
   }
@@ -278,8 +312,28 @@ export class Controls {
    * Called when microphone access is denied or error occurs
    */
   onMicrophoneError(error) {
+    console.error('Controls: microphone error', error);
     this.setState(this.states.ERROR);
-    this.showError(error?.message || 'Microphone access denied');
+    
+    // Reset the welcome button text
+    if (this.allowMicBtn) {
+      const btnText = this.allowMicBtn.querySelector('.btn-text');
+      if (btnText) {
+        btnText.textContent = 'Allow Microphone';
+      }
+    }
+    
+    // Show user-friendly error
+    let message = error?.message || 'Microphone access denied';
+    
+    // Add iOS-specific help
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIOS && message.includes('denied')) {
+      message += '\n\nOn iOS: Settings → Safari → Microphone → Allow';
+    }
+    
+    this.showError(message);
   }
   
   /**
@@ -325,7 +379,8 @@ export class Controls {
     if (this.errorOverlay) {
       const msgElement = document.getElementById('errorMessage');
       if (msgElement) {
-        msgElement.textContent = message;
+        // Replace newlines with <br> for proper display
+        msgElement.innerHTML = message.replace(/\n/g, '<br>');
       }
       this.errorOverlay.classList.remove('hidden');
     }

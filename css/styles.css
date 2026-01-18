@@ -479,9 +479,12 @@ body {
   -webkit-backdrop-filter: blur(20px);
   z-index: var(--z-overlay);
   padding: var(--space-lg);
-  /* iOS touch handling */
+  padding-top: calc(var(--safe-top) + var(--space-lg));
+  padding-bottom: calc(var(--safe-bottom) + var(--space-lg));
+  /* iOS touch handling and scrolling */
   touch-action: manipulation;
   -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
   transition: 
     opacity var(--duration-slow) var(--ease-out-smooth),
     visibility var(--duration-slow);
@@ -549,10 +552,84 @@ body {
   pointer-events: auto;
   touch-action: manipulation;
   -webkit-appearance: none;
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0.1);
   cursor: pointer;
   /* Larger tap target on mobile */
-  min-height: 52px;
-  min-width: 200px;
+  min-height: 56px;
+  min-width: 220px;
+  font-size: 0.9rem;
+}
+
+/* Visual feedback for touch on iOS */
+.overlay .btn-primary:active,
+.overlay .btn-primary.btn-pressed {
+  transform: scale(0.96);
+  opacity: 0.9;
+  background: var(--ui-surface-active);
+}
+
+/* iPhone specific - smaller screens need special handling */
+@media (max-width: 430px) {
+  .overlay {
+    padding: var(--space-md);
+    padding-top: calc(var(--safe-top) + var(--space-md));
+    padding-bottom: calc(var(--safe-bottom) + var(--space-md));
+  }
+  
+  .overlay-content {
+    max-width: 95vw;
+    padding: var(--space-lg) var(--space-md);
+    margin: auto;
+  }
+  
+  .overlay-title {
+    font-size: 1.4rem;
+  }
+  
+  .overlay-text {
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+  
+  .overlay-subtext {
+    font-size: 0.7rem;
+    margin-bottom: var(--space-lg);
+  }
+  
+  .overlay .btn-primary {
+    min-height: 54px;
+    min-width: 90%;
+    width: 90%;
+    font-size: 0.85rem;
+    padding: var(--space-md) var(--space-lg);
+  }
+  
+  /* Ensure button is visible and tappable */
+  .overlay .btn-large {
+    margin-top: var(--space-md);
+  }
+}
+
+/* Very small phones (iPhone SE, etc.) */
+@media (max-width: 375px) {
+  .overlay-content {
+    padding: var(--space-md);
+  }
+  
+  .overlay-icon svg {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .overlay-title {
+    font-size: 1.2rem;
+    margin-bottom: var(--space-md);
+  }
+  
+  .overlay-text {
+    font-size: 0.8rem;
+    margin-bottom: var(--space-sm);
+  }
 }
 
 /* ===== SETTINGS PANEL ===== */
