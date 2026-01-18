@@ -638,17 +638,17 @@ body {
 /* iPhone controls visibility fix */
 @media (max-width: 430px) {
   .app-container {
-    padding-bottom: calc(var(--safe-bottom) + var(--space-xl));
+    padding-bottom: calc(var(--safe-bottom) + var(--space-md));
   }
   
   .controls {
-    gap: var(--space-md);
-    padding-bottom: var(--space-md);
+    gap: var(--space-sm);
+    padding-bottom: var(--space-xs);
   }
   
-  /* Reduce body height to make room for controls */
+  /* Maximize body height */
   .body-wrapper {
-    max-height: 58vh;
+    max-height: 65vh;
   }
   
   .body-container {
@@ -656,19 +656,46 @@ body {
     min-height: 0;
   }
   
-  /* Smaller frequency display */
+  /* Compact frequency display */
   .frequency-display {
     margin: var(--space-xs) 0;
   }
   
   .freq-value {
-    font-size: clamp(2rem, 7vw, 3rem);
+    font-size: clamp(1.8rem, 6vw, 2.5rem);
+  }
+  
+  .freq-region {
+    font-size: 0.6rem;
   }
   
   /* Make title smaller */
   .app-title {
-    font-size: 0.9rem;
-    margin-bottom: var(--space-xs);
+    font-size: 0.85rem;
+    margin-bottom: 0;
+  }
+  
+  /* Smaller buttons on mobile */
+  .btn {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.65rem;
+    min-height: 40px;
+  }
+  
+  .btn-icon {
+    padding: var(--space-sm);
+    width: 40px;
+    height: 40px;
+  }
+  
+  .btn-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .status-indicator {
+    width: 8px;
+    height: 8px;
   }
 }
 
