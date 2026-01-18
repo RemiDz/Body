@@ -5,7 +5,9 @@
 
 // ===== AUDIO CONFIGURATION =====
 // Detect iOS for platform-specific settings
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isIOS =
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 export const AUDIO_CONFIG = {
   fftSize: 8192,                    // High resolution for low frequencies
@@ -136,13 +138,14 @@ export const VISUAL_CONFIG = {
   // Frequency display
   frequencySmoothing: 0.7,          // Smooth Hz readout
   frequencyDisplayThreshold: -50,   // dB threshold to show Hz
-  frequencyTransitionSpeed: 150     // ms for number transitions
+  frequencyTransitionSpeed: 150,    // ms for number transitions
+  peakThreshold: AUDIO_CONFIG.peakThreshold
 };
 
 // ===== UI CONFIGURATION =====
 export const UI_CONFIG = {
   // Calibration
-  defaultGain: 1.0,
+  defaultGain: isIOS ? 3.0 : 1.0,
   gainRange: [0.1, 3.0],
   noiseFloorRange: [-70, -40],
   

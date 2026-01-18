@@ -211,7 +211,7 @@ export class AudioAnalyzer {
     
     // Calculate bin size for frequency mapping
     const sampleRate = this.audioContext.sampleRate;
-    const binSize = sampleRate / this.config.fftSize;
+    const binSize = sampleRate / this.analyser.fftSize;
     
     // Find peaks
     const peaks = this.findPeaks(binSize);
@@ -362,7 +362,7 @@ export class AudioAnalyzer {
   getFrequencyRange(minFreq, maxFreq) {
     if (!this.isInitialized) return [];
     
-    const binSize = this.audioContext.sampleRate / this.config.fftSize;
+    const binSize = this.audioContext.sampleRate / this.analyser.fftSize;
     const minBin = Math.floor(minFreq / binSize);
     const maxBin = Math.ceil(maxFreq / binSize);
     

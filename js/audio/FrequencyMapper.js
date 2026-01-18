@@ -208,7 +208,8 @@ export class FrequencyMapper {
       }
     }
     
-    if (maxIntensity < this.config.peakThreshold) {
+    const peakThreshold = this.config.peakThreshold ?? 0.25;
+    if (maxIntensity < peakThreshold) {
       return null;
     }
     
