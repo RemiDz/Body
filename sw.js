@@ -3,7 +3,7 @@
  * Enables offline functionality as a PWA
  */
 
-const CACHE_NAME = 'resonance-v1.4.0';
+const CACHE_NAME = 'resonance-v1.5.0';
 const ASSETS = [
   '/',
   '/index.html',
