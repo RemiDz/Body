@@ -4,7 +4,7 @@
  */
 
 import { FREQUENCY_REGIONS, VISUAL_CONFIG } from '../config.js';
-import { clamp, approach } from '../utils/math.js';
+import { clamp, approach, smoothstep } from '../utils/math.js';
 
 export class FrequencyMapper {
   constructor(options = {}) {
@@ -16,6 +16,10 @@ export class FrequencyMapper {
     
     // Target intensities (what we're approaching)
     this.targetIntensities = {};
+    
+    // Hysteresis state for dominant region stability
+    this.lastDominant = null;
+    this.lastDominantTime = 0;
     
     // Initialize all regions to 0
     this.reset();
@@ -29,6 +33,22 @@ export class FrequencyMapper {
       this.intensities[regionName] = 0;
       this.targetIntensities[regionName] = 0;
     }
+    this.lastDominant = null;
+    this.lastDominantTime = 0;
+  }
+  
+  /**
+   * Get neighboring regions for boundary blending
+   * @param {string} regionName - Name of the region
+   * @returns {Object} { prev, next } - neighbor region names or null
+   */
+  getNeighborRegions(regionName) {
+    const order = ['root', 'sacral', 'solar', 'heart', 'throat', 'thirdEye', 'crown'];
+    const i = order.indexOf(regionName);
+    return {
+      prev: i > 0 ? order[i - 1] : null,
+      next: i < order.length - 1 ? order[i + 1] : null
+    };
   }
   
   /**
@@ -78,34 +98,63 @@ export class FrequencyMapper {
   
   /**
    * Process a single frequency peak and update target intensities
+   * Implements boundary blending for smooth transitions between regions
    */
   processPeak(peak) {
     const { frequency, amplitude } = peak;
     
-    // Find which region(s) this frequency belongs to
+    // 1) Find primary region for this frequency
+    let primary = null;
     for (const [regionName, config] of Object.entries(this.regions)) {
       if (frequency >= config.min && frequency < config.max) {
-        // Calculate position within region (for intensity falloff at edges)
-        const regionCenter = (config.min + config.max) / 2;
-        const regionWidth = config.max - config.min;
-        const distanceFromCenter = Math.abs(frequency - regionCenter);
-        const normalizedDistance = distanceFromCenter / (regionWidth / 2);
-        
-        // Apply soft falloff at edges
-        const edgeFalloff = 1 - (normalizedDistance * 0.3);
-        
-        // Calculate final intensity for this peak
-        const intensity = amplitude * edgeFalloff * this.config.glowIntensityMultiplier;
-        
-        // Update target if this peak is stronger
-        this.targetIntensities[regionName] = Math.max(
-          this.targetIntensities[regionName],
-          intensity
-        );
+        primary = regionName;
+        break;
+      }
+    }
+    if (!primary) return;
+    
+    const cfg = this.regions[primary];
+    const width = cfg.max - cfg.min;
+    const center = (cfg.min + cfg.max) / 2;
+    
+    // 2) Calculate edge falloff (existing behavior preserved)
+    const dist = Math.abs(frequency - center);
+    const normDist = dist / (width / 2);
+    const edgeFalloff = 1 - (normDist * 0.3);
+    
+    // 3) Boundary blending - 18% of region width as blend zone
+    const blend = width * 0.18;
+    let wPrimary = 1;
+    
+    const { prev, next } = this.getNeighborRegions(primary);
+    
+    // Blend with previous region near lower boundary
+    if (prev) {
+      const tLow = smoothstep(cfg.min, cfg.min + blend, frequency);
+      wPrimary = Math.min(wPrimary, tLow);
+      const wPrev = 1 - tLow;
+      if (wPrev > 0) {
+        const intenPrev = amplitude * edgeFalloff * wPrev * this.config.glowIntensityMultiplier;
+        this.targetIntensities[prev] = Math.max(this.targetIntensities[prev] || 0, intenPrev);
       }
     }
     
-    // Handle harmonics - frequencies that span multiple regions
+    // Blend with next region near upper boundary
+    if (next) {
+      const tHigh = smoothstep(cfg.max - blend, cfg.max, frequency);
+      wPrimary = Math.min(wPrimary, 1 - tHigh);
+      const wNext = tHigh;
+      if (wNext > 0) {
+        const intenNext = amplitude * edgeFalloff * wNext * this.config.glowIntensityMultiplier;
+        this.targetIntensities[next] = Math.max(this.targetIntensities[next] || 0, intenNext);
+      }
+    }
+    
+    // 4) Apply intensity to primary region with blended weight
+    const intensity = amplitude * edgeFalloff * wPrimary * this.config.glowIntensityMultiplier;
+    this.targetIntensities[primary] = Math.max(this.targetIntensities[primary] || 0, intensity);
+    
+    // 5) Handle harmonics - frequencies that span multiple regions
     this.processHarmonics(peak);
   }
   
@@ -144,16 +193,19 @@ export class FrequencyMapper {
   }
   
   /**
-   * Get the dominant region (highest intensity)
+   * Get the dominant region (highest intensity) with hysteresis for stability
+   * Prevents flickering when two regions have similar intensity
    */
   getDominantRegion() {
+    const now = performance.now();
+    
     let maxIntensity = 0;
-    let dominantRegion = null;
+    let dominant = null;
     
     for (const [regionName, intensity] of Object.entries(this.intensities)) {
       if (intensity > maxIntensity) {
         maxIntensity = intensity;
-        dominantRegion = regionName;
+        dominant = regionName;
       }
     }
     
@@ -161,10 +213,36 @@ export class FrequencyMapper {
       return null;
     }
     
+    // Hysteresis: prevent rapid toggling between regions
+    const HOLD_MS = 450;          // Minimum time before switching
+    const SWITCH_MARGIN = 1.18;   // New region must be 18% stronger to switch
+    
+    if (this.lastDominant && dominant && dominant !== this.lastDominant) {
+      const cur = this.intensities[this.lastDominant] || 0;
+      const cand = this.intensities[dominant] || 0;
+      
+      const recentlySwitched = (now - this.lastDominantTime) < HOLD_MS;
+      const notStrongEnough = cand < cur * SWITCH_MARGIN;
+      
+      if (recentlySwitched || notStrongEnough) {
+        // Keep previous dominant - not strong enough or too soon to switch
+        dominant = this.lastDominant;
+        maxIntensity = cur;
+      } else {
+        // Switch to new dominant
+        this.lastDominant = dominant;
+        this.lastDominantTime = now;
+      }
+    } else {
+      // First dominant or same as before
+      this.lastDominant = dominant;
+      this.lastDominantTime = now;
+    }
+    
     return {
-      name: dominantRegion,
+      name: dominant,
       intensity: maxIntensity,
-      config: this.regions[dominantRegion]
+      config: this.regions[dominant]
     };
   }
   

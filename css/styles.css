@@ -279,6 +279,18 @@ body {
   transition: opacity 0.3s ease-out, transform 0.3s ease-out;
 }
 
+/* Spine line flow animation when active */
+.energy-spine-line.flowing {
+  stroke-dasharray: 6 10;
+  animation: spineFlow 1.2s linear infinite;
+}
+
+@keyframes spineFlow {
+  to {
+    stroke-dashoffset: -32;
+  }
+}
+
 .skeletal-layer {
   opacity: 0.4;
 }

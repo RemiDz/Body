@@ -195,6 +195,8 @@ export class BodyRenderer {
    * Lines glow when energy flows between connected chakras
    */
   updateSpineLines(intensityMap) {
+    const FLOW_THRESHOLD = 0.08; // Threshold to activate flow animation
+    
     // Update spine lines (glow based on average of connected regions)
     for (const [lineId, lineData] of Object.entries(this.spineLineElements)) {
       const [region1, region2] = lineData.regions;
@@ -211,10 +213,18 @@ export class BodyRenderer {
         const strokeWidth = 2 + lineIntensity * 2;
         lineData.element.style.opacity = opacity;
         lineData.element.style.strokeWidth = strokeWidth;
+        
+        // Add flow animation when intensity is above threshold
+        if (lineIntensity > FLOW_THRESHOLD) {
+          lineData.element.classList.add('flowing');
+        } else {
+          lineData.element.classList.remove('flowing');
+        }
       } else {
         // Inactive - subtle base visibility
         lineData.element.style.opacity = 0.05;
         lineData.element.style.strokeWidth = 2;
+        lineData.element.classList.remove('flowing');
       }
     }
     
@@ -231,6 +241,31 @@ export class BodyRenderer {
       } else {
         nodeElement.style.opacity = 0.1;
         nodeElement.style.transform = 'scale(1)';
+      }
+    }
+  }
+  
+  /**
+   * Apply GlowEngine styles to energy layers for richer depth
+   * @param {GlowEngine} glowEngine - The glow engine instance
+   */
+  applyGlowStyles(glowEngine) {
+    if (!this.isLoaded || !glowEngine) return;
+    
+    for (const [regionName, element] of Object.entries(this.energyElements)) {
+      if (!element) continue;
+      
+      const styles = glowEngine.getGlowStyles(regionName);
+      
+      // Apply filter (multi-layer glow) - keeps existing opacity from setRegionIntensity
+      if (styles.filter && styles.filter !== 'none') {
+        element.style.filter = styles.filter;
+      }
+      
+      // Apply subtle scale transform for breathing effect
+      if (styles.transform) {
+        element.style.transform = styles.transform;
+        element.style.transformOrigin = 'center';
       }
     }
   }

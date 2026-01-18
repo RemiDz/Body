@@ -282,6 +282,9 @@ class ResonanceApp {
         // Update body visuals
         this.bodyRenderer?.setAllRegions(intensities);
         
+        // Apply GlowEngine styles for richer depth effects
+        this.bodyRenderer?.applyGlowStyles(this.glowEngine);
+        
         // Update particles with dominant frequency for pulsing
         if (this.calibration?.particlesEnabled !== false) {
           this.particleSystem?.update(intensities, this.regionBounds, deltaTime, audioData.dominantFrequency);

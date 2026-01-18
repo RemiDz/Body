@@ -220,15 +220,18 @@ export class AudioAnalyzer {
     this.analyser.getFloatTimeDomainData(this.timeData);
     const rmsLevel = this.calculateRMS();
     
-    // Determine dominant frequency
+    // Determine dominant frequency using fundamental estimation
+    // This reduces octave/harmonic jumps by preferring the base tone
     const dominant = peaks.length > 0 ? peaks[0] : null;
+    const fundamental = this.estimateFundamental(peaks);
+    const dominantFrequency = fundamental || (dominant ? dominant.frequency : 0);
     
     // Check if audio is active (above noise floor)
     const isActive = dominant !== null && dominant.db > this.config.noiseFloor;
     
     return {
       peaks,
-      dominantFrequency: dominant ? dominant.frequency : 0,
+      dominantFrequency,
       dominantAmplitude: dominant ? dominant.amplitude : 0,
       dominantDb: dominant ? dominant.db : this.config.minDecibels,
       rmsLevel,
@@ -236,6 +239,52 @@ export class AudioAnalyzer {
       binSize,
       sampleRate
     };
+  }
+  
+  /**
+   * Estimate the fundamental frequency from peaks using harmonic analysis
+   * Reduces octave/harmonic jumps by preferring the base tone
+   * @param {Array} peaks - Array of peak objects with frequency and amplitude
+   * @returns {number} Estimated fundamental frequency
+   */
+  estimateFundamental(peaks) {
+    if (!peaks || peaks.length === 0) return 0;
+    
+    // Generate candidate fundamentals from top 5 peaks
+    const cands = [];
+    for (let i = 0; i < Math.min(peaks.length, 5); i++) {
+      const f = peaks[i].frequency;
+      cands.push(f, f / 2, f / 3);
+    }
+    
+    const tol = 0.025; // 2.5% tolerance for harmonic matching
+    let bestF = 0;
+    let bestScore = -1;
+    
+    for (const f0 of cands) {
+      // Skip candidates outside valid frequency range
+      if (f0 < this.config.minFrequency || f0 > this.config.maxFrequency) continue;
+      
+      let score = 0;
+      for (const p of peaks) {
+        const ratio = p.frequency / f0;
+        const k = Math.round(ratio);
+        if (k < 1 || k > 12) continue;
+        
+        const err = Math.abs(ratio - k) / k;
+        if (err < tol) {
+          // Weight by amplitude and favor lower harmonics (1/k)
+          score += p.amplitude * (1 / k);
+        }
+      }
+      
+      if (score > bestScore) {
+        bestScore = score;
+        bestF = f0;
+      }
+    }
+    
+    return bestF;
   }
   
   /**
