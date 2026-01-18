@@ -28,9 +28,21 @@ export class AudioAnalyzer {
   }
   
   /**
+   * Check if running on iOS
+   */
+  static isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+  
+  /**
    * Initialize the audio system and request microphone access
+   * IMPORTANT: This MUST be called during a user gesture (click/tap) on iOS
    */
   async init() {
+    const isIOS = AudioAnalyzer.isIOS();
+    console.log('AudioAnalyzer init started, iOS detected:', isIOS);
+    
     try {
       // Check if getUserMedia is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -43,42 +55,49 @@ export class AudioAnalyzer {
         throw new Error('Web Audio API not supported in this browser');
       }
       
+      // Create AudioContext during user gesture (critical for iOS)
       this.audioContext = new AudioContextClass();
+      console.log('AudioContext created, state:', this.audioContext.state);
       
-      // Resume audio context if suspended (required for iOS Safari)
+      // iOS Safari REQUIRES explicit resume() during user gesture
       if (this.audioContext.state === 'suspended') {
+        console.log('Resuming suspended AudioContext...');
         await this.audioContext.resume();
+        console.log('AudioContext resumed, state:', this.audioContext.state);
       }
       
-      // iOS Safari: Set up state change listener to auto-resume
+      // Set up state change listener
       this.audioContext.addEventListener('statechange', () => {
-        console.log('AudioContext state:', this.audioContext.state);
-        if (this.audioContext.state === 'suspended') {
-          this.audioContext.resume();
-        }
+        console.log('AudioContext state changed:', this.audioContext.state);
       });
       
-      // Request microphone access
-      // iOS Safari: Use minimal constraints for better compatibility
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      // Request microphone access with iOS-compatible constraints
+      // iOS Safari: Simpler constraints work better
+      let audioConstraints;
+      if (isIOS) {
+        // Start with very simple constraints for iOS
+        audioConstraints = { audio: true };
+      } else {
+        audioConstraints = {
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          }
+        };
+      }
       
-      const audioConstraints = isIOS ? {
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-          // iOS-specific: Request higher sample rate
-          sampleRate: 48000
-        }
-      } : {
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false
-        }
-      };
+      console.log('Requesting microphone with constraints:', audioConstraints);
       
-      this.stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
+      } catch (firstError) {
+        // If iOS constraints fail, try absolute minimum
+        console.warn('First getUserMedia attempt failed, trying fallback:', firstError);
+        this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
+      
+      console.log('Got media stream:', this.stream.active);
       
       // Create source from microphone stream
       this.source = this.audioContext.createMediaStreamSource(this.stream);
@@ -86,12 +105,12 @@ export class AudioAnalyzer {
       // Create gain node for sensitivity adjustment
       this.gainNode = this.audioContext.createGain();
       // iOS Safari: Boost gain by default (iOS has lower input levels)
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      this.gainNode.gain.value = isIOS ? 2.5 : 1.0;
+      this.gainNode.gain.value = isIOS ? 3.0 : 1.0;
       
-      // Create analyzer node
+      // Create analyzer node with iOS-friendly settings
       this.analyser = this.audioContext.createAnalyser();
-      this.analyser.fftSize = this.config.fftSize;
+      // Use smaller FFT size on iOS for better performance
+      this.analyser.fftSize = isIOS ? Math.min(this.config.fftSize, 2048) : this.config.fftSize;
       this.analyser.smoothingTimeConstant = this.config.smoothingTimeConstant;
       this.analyser.minDecibels = this.config.minDecibels;
       this.analyser.maxDecibels = this.config.maxDecibels;
@@ -107,6 +126,8 @@ export class AudioAnalyzer {
       this.isInitialized = true;
       this.isActive = true;
       
+      console.log('AudioAnalyzer initialized successfully');
+      
       if (this.onStateChange) {
         this.onStateChange('listening');
       }
@@ -114,13 +135,13 @@ export class AudioAnalyzer {
       return true;
       
     } catch (error) {
-      console.error('AudioAnalyzer init error:', error);
+      console.error('AudioAnalyzer init error:', error.name, error.message);
       
       // Create user-friendly error message
       let userError = error;
       
       if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-        userError = new Error('Microphone permission denied. Please allow microphone access and try again.');
+        userError = new Error('Microphone permission denied. Please allow microphone access in Settings > Safari > Microphone and try again.');
       } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
         userError = new Error('No microphone found. Please connect a microphone and try again.');
       } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
@@ -129,6 +150,8 @@ export class AudioAnalyzer {
         userError = new Error('Microphone does not support requested settings. Trying default settings...');
       } else if (error.name === 'SecurityError') {
         userError = new Error('Microphone access blocked. Please use HTTPS or localhost.');
+      } else if (error.name === 'AbortError') {
+        userError = new Error('Microphone request was aborted. Please try again.');
       }
       
       if (this.onError) {

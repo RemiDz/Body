@@ -24,8 +24,8 @@ body {
   letter-spacing: var(--tracking-body);
   line-height: 1.6;
   
-  /* Prevent user interactions */
-  touch-action: none;
+  /* Allow touch for buttons, prevent zoom */
+  touch-action: manipulation;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
@@ -381,6 +381,12 @@ body {
   background: var(--ui-surface);
   border: 1px solid var(--ui-border);
   border-radius: var(--radius-pill);
+  /* iOS touch compatibility */
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  z-index: 10;
   cursor: pointer;
   transition: 
     background var(--duration-fast) var(--ease-out-fast),
@@ -402,6 +408,25 @@ body {
 
 .btn:active {
   transform: scale(0.98);
+}
+
+/* iOS active states (touchend doesn't always trigger :active) */
+.btn.btn-pressed {
+  transform: scale(0.96);
+  background: var(--ui-surface-active);
+}
+
+/* Better touch target for mobile */
+@media (pointer: coarse) {
+  .btn {
+    min-height: 48px;
+    min-width: 48px;
+  }
+  
+  .btn-large {
+    min-height: 56px;
+    padding: var(--space-lg) var(--space-2xl);
+  }
 }
 
 .btn.active {
@@ -454,6 +479,9 @@ body {
   -webkit-backdrop-filter: blur(20px);
   z-index: var(--z-overlay);
   padding: var(--space-lg);
+  /* iOS touch handling */
+  touch-action: manipulation;
+  -webkit-overflow-scrolling: touch;
   transition: 
     opacity var(--duration-slow) var(--ease-out-smooth),
     visibility var(--duration-slow);
@@ -476,6 +504,9 @@ body {
   border: 1px solid var(--ui-border);
   border-radius: var(--radius-lg);
   animation: overlayEnter var(--duration-slow) var(--ease-out-smooth);
+  /* Ensure buttons inside are tappable */
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 .overlay-icon {
@@ -509,6 +540,19 @@ body {
   color: var(--text-dim);
   margin-bottom: var(--space-xl);
   opacity: 0.7;
+}
+
+/* Primary CTA button in overlays - extra touch-friendly for iOS */
+.overlay .btn-primary {
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  cursor: pointer;
+  /* Larger tap target on mobile */
+  min-height: 52px;
+  min-width: 200px;
 }
 
 /* ===== SETTINGS PANEL ===== */

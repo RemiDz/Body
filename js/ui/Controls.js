@@ -34,37 +34,57 @@ export class Controls {
   }
   
   /**
+   * Helper to add both click and touch events (iOS compatibility)
+   */
+  addTapHandler(element, handler) {
+    if (!element) return;
+    
+    let touchMoved = false;
+    
+    // Touch events for iOS
+    element.addEventListener('touchstart', (e) => {
+      touchMoved = false;
+    }, { passive: true });
+    
+    element.addEventListener('touchmove', () => {
+      touchMoved = true;
+    }, { passive: true });
+    
+    element.addEventListener('touchend', (e) => {
+      if (!touchMoved) {
+        e.preventDefault();
+        handler(e);
+      }
+    }, { passive: false });
+    
+    // Click event for desktop
+    element.addEventListener('click', (e) => {
+      handler(e);
+    });
+  }
+  
+  /**
    * Bind DOM event handlers
    */
   bindEvents() {
-    // Main button
-    if (this.mainBtn) {
-      this.mainBtn.addEventListener('click', () => this.handleMainClick());
-    }
+    // Main button - use tap handler for iOS
+    this.addTapHandler(this.mainBtn, () => this.handleMainClick());
     
     // Settings button
-    if (this.settingsBtn) {
-      this.settingsBtn.addEventListener('click', () => this.showSettings());
-    }
+    this.addTapHandler(this.settingsBtn, () => this.showSettings());
     
     // Close settings
-    if (this.closeSettingsBtn) {
-      this.closeSettingsBtn.addEventListener('click', () => this.hideSettings());
-    }
+    this.addTapHandler(this.closeSettingsBtn, () => this.hideSettings());
     
-    // Welcome overlay - Allow Mic button
-    if (this.allowMicBtn) {
-      this.allowMicBtn.addEventListener('click', () => this.handleStart());
-    }
+    // Welcome overlay - Allow Mic button (CRITICAL for iOS)
+    this.addTapHandler(this.allowMicBtn, () => this.handleStart());
     
     // Error overlay - Retry button
-    if (this.retryBtn) {
-      this.retryBtn.addEventListener('click', () => this.handleRetry());
-    }
+    this.addTapHandler(this.retryBtn, () => this.handleRetry());
     
     // Settings overlay click outside to close
     if (this.settingsOverlay) {
-      this.settingsOverlay.addEventListener('click', (e) => {
+      this.addTapHandler(this.settingsOverlay, (e) => {
         if (e.target === this.settingsOverlay) {
           this.hideSettings();
         }
@@ -117,6 +137,36 @@ export class Controls {
     if (particlesToggle) {
       particlesToggle.addEventListener('change', (e) => {
         this.emitSettingsChange({ particlesEnabled: e.target.checked });
+      });
+    }
+    
+    // Theme toggle (Light/Dark mode)
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+      // Load saved theme preference
+      const savedTheme = localStorage.getItem('resonance-theme');
+      if (savedTheme === 'light') {
+        themeToggle.checked = true;
+        document.body.classList.add('light-theme');
+        // Update meta theme color for light mode
+        const metaTheme = document.querySelector('meta[name="theme-color"]');
+        if (metaTheme) metaTheme.setAttribute('content', '#f5f2ed');
+      }
+      
+      themeToggle.addEventListener('change', (e) => {
+        const isLight = e.target.checked;
+        document.body.classList.toggle('light-theme', isLight);
+        
+        // Update meta theme color
+        const metaTheme = document.querySelector('meta[name="theme-color"]');
+        if (metaTheme) {
+          metaTheme.setAttribute('content', isLight ? '#f5f2ed' : '#08080c');
+        }
+        
+        // Save preference
+        localStorage.setItem('resonance-theme', isLight ? 'light' : 'dark');
+        
+        this.emitSettingsChange({ theme: isLight ? 'light' : 'dark' });
       });
     }
   }

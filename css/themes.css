@@ -125,12 +125,145 @@
   --glow-blur-ambient: 40px;
 }
 
+/* ===== LIGHT MODE THEME ===== */
+.light-theme {
+  /* Background Colors - Warm cream/off-white */
+  --bg-deep: #f5f2ed;
+  --bg-mid: #ebe8e3;
+  --bg-surface: #ffffff;
+  --bg-glow: rgba(100, 80, 140, 0.12);
+  --bg-overlay: rgba(255, 255, 255, 0.92);
+  
+  /* Region Colors - Slightly deeper for light backgrounds */
+  --color-root: #b82929;
+  --color-root-glow: #d44444;
+  --color-sacral: #c45800;
+  --color-sacral-glow: #e67300;
+  --color-solar: #b39500;
+  --color-solar-glow: #d4b000;
+  --color-heart: #009966;
+  --color-heart-glow: #00cc88;
+  --color-throat: #0099bb;
+  --color-throat-glow: #00bbdd;
+  --color-thirdeye: #5544bb;
+  --color-thirdeye-glow: #7766dd;
+  --color-crown: #9944cc;
+  --color-crown-glow: #bb66ee;
+  
+  /* Text Colors - Dark on light */
+  --text-dim: rgba(20, 20, 30, 0.4);
+  --text-mid: rgba(20, 20, 30, 0.65);
+  --text-bright: rgba(20, 20, 30, 0.9);
+  --text-pure: #1a1a24;
+  
+  /* UI Colors */
+  --ui-border: rgba(20, 20, 30, 0.1);
+  --ui-border-hover: rgba(20, 20, 30, 0.2);
+  --ui-border-active: rgba(20, 20, 30, 0.3);
+  --ui-surface: rgba(20, 20, 30, 0.04);
+  --ui-surface-hover: rgba(20, 20, 30, 0.08);
+  --ui-surface-active: rgba(20, 20, 30, 0.12);
+  
+  /* Status Colors */
+  --status-idle: rgba(20, 20, 30, 0.25);
+  --status-listening: #00cc66;
+  --status-error: #dd3344;
+  
+  /* Shadows - softer for light mode */
+  --shadow-glow-sm: 0 0 8px;
+  --shadow-glow-md: 0 0 16px;
+  --shadow-glow-lg: 0 0 32px;
+  --shadow-glow-xl: 0 0 60px;
+}
+
+/* Light theme body SVG adjustments */
+.light-theme .body-svg .silhouette {
+  fill: rgba(30, 30, 40, 0.06);
+  stroke: rgba(30, 30, 40, 0.15);
+}
+
+.light-theme .body-svg .skeletal-line {
+  stroke: rgba(30, 30, 40, 0.08);
+}
+
+.light-theme .body-svg .organ {
+  fill: rgba(30, 30, 40, 0.03);
+  stroke: rgba(30, 30, 40, 0.12);
+}
+
+.light-theme .body-svg .chakra {
+  fill: rgba(30, 30, 40, 0.04);
+  stroke: rgba(30, 30, 40, 0.1);
+}
+
+/* Light theme ambient orbs */
+.light-theme .ambient-orb {
+  opacity: 0.15;
+}
+
+.light-theme .ambient-orb.orb-1 {
+  background: radial-gradient(circle, rgba(150, 100, 200, 0.2), transparent 70%);
+}
+
+.light-theme .ambient-orb.orb-2 {
+  background: radial-gradient(circle, rgba(100, 150, 200, 0.2), transparent 70%);
+}
+
+.light-theme .ambient-orb.orb-3 {
+  background: radial-gradient(circle, rgba(150, 200, 150, 0.2), transparent 70%);
+}
+
+/* Light theme vignette - subtle warm */
+.light-theme .vignette {
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(200, 180, 160, 0.15) 100%);
+}
+
+/* Light theme overlays */
+.light-theme .overlay {
+  background: rgba(245, 242, 237, 0.95);
+}
+
+.light-theme .overlay-content {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Light theme buttons */
+.light-theme .btn {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: var(--text-mid);
+}
+
+.light-theme .btn:hover,
+.light-theme .btn:focus {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.2);
+  color: var(--text-bright);
+}
+
+.light-theme .btn-primary.active {
+  background: rgba(0, 200, 100, 0.15);
+  border-color: rgba(0, 200, 100, 0.4);
+}
+
+/* Light theme frequency display */
+.light-theme .frequency-display {
+  color: var(--text-mid);
+}
+
 /* ===== HIGH CONTRAST MODE ===== */
 @media (prefers-contrast: high) {
   :root {
     --text-dim: rgba(255, 255, 255, 0.5);
     --text-mid: rgba(255, 255, 255, 0.7);
     --ui-border: rgba(255, 255, 255, 0.2);
+  }
+  
+  .light-theme {
+    --text-dim: rgba(0, 0, 0, 0.6);
+    --text-mid: rgba(0, 0, 0, 0.8);
+    --ui-border: rgba(0, 0, 0, 0.3);
   }
 }
 
