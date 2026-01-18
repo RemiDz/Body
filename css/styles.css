@@ -140,7 +140,7 @@ body {
   position: relative;
   flex: 1;
   width: 100%;
-  max-width: 400px;
+  max-width: 500px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -149,9 +149,9 @@ body {
 
 .body-wrapper {
   position: relative;
-  width: 85%;
+  width: 95%;
   height: 100%;
-  max-height: 65vh;
+  max-height: 75vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -704,7 +704,7 @@ body {
 /* ===== RESPONSIVE ===== */
 @media (max-height: 700px) {
   .body-wrapper {
-    max-height: 55vh;
+    max-height: 60vh;
   }
   
   .frequency-display {
@@ -716,13 +716,51 @@ body {
   }
 }
 
+/* iPad and tablets in portrait */
 @media (min-width: 768px) {
   .body-container {
-    max-width: 450px;
+    max-width: 600px;
   }
   
   .body-wrapper {
-    max-height: 70vh;
+    width: 100%;
+    max-height: 78vh;
+  }
+}
+
+/* iPad Pro and larger tablets */
+@media (min-width: 1024px) {
+  .body-container {
+    max-width: 700px;
+  }
+  
+  .body-wrapper {
+    max-height: 80vh;
+  }
+}
+
+/* iPad portrait specific - maximize body size */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .app-container {
+    padding-top: calc(var(--safe-top) + var(--space-md));
+    padding-bottom: calc(var(--safe-bottom) + var(--space-md));
+  }
+  
+  .body-container {
+    max-width: 90vw;
+  }
+  
+  .body-wrapper {
+    width: 100%;
+    max-height: 72vh;
+  }
+  
+  .frequency-display {
+    margin: var(--space-sm) 0;
+  }
+  
+  .controls {
+    margin-top: var(--space-sm);
   }
 }
 

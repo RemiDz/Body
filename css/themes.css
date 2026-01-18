@@ -176,25 +176,97 @@
   --shadow-glow-xl: 0 0 60px;
 }
 
-/* Light theme body SVG adjustments */
-.light-theme .body-svg .silhouette {
-  fill: rgba(30, 30, 40, 0.06);
-  stroke: rgba(30, 30, 40, 0.15);
+/* ===== LIGHT THEME SVG OVERRIDES ===== */
+/* These use !important to override inline SVG styles */
+
+/* Body silhouette */
+.light-theme #body-outline,
+.light-theme .body-outline {
+  stroke: rgba(50, 40, 70, 0.3) !important;
+  fill: rgba(50, 40, 70, 0.04) !important;
 }
 
-.light-theme .body-svg .skeletal-line {
-  stroke: rgba(30, 30, 40, 0.08);
+.light-theme #head {
+  stroke: rgba(50, 40, 70, 0.2) !important;
 }
 
-.light-theme .body-svg .organ {
-  fill: rgba(30, 30, 40, 0.03);
-  stroke: rgba(30, 30, 40, 0.12);
+/* Skeletal elements */
+.light-theme #skeletal-layer {
+  opacity: 0.6 !important;
 }
 
-.light-theme .body-svg .chakra {
-  fill: rgba(30, 30, 40, 0.04);
-  stroke: rgba(30, 30, 40, 0.1);
+.light-theme #spine {
+  stroke: rgba(50, 40, 70, 0.22) !important;
 }
+
+.light-theme #vertebrae circle {
+  fill: rgba(50, 40, 70, 0.18) !important;
+}
+
+.light-theme #ribcage path {
+  stroke: rgba(50, 40, 70, 0.15) !important;
+}
+
+.light-theme #pelvis {
+  stroke: rgba(50, 40, 70, 0.18) !important;
+}
+
+/* All organs - keep their colors but make visible on light */
+.light-theme .organ-group .organ {
+  stroke-opacity: 0.4 !important;
+  fill-opacity: 0.08 !important;
+}
+
+.light-theme .organ-group path:not(.organ) {
+  stroke-opacity: 0.25 !important;
+}
+
+/* Energy regions - semi-transparent ellipses */
+.light-theme #energy-regions ellipse {
+  stroke-opacity: 0.2 !important;
+  fill-opacity: 0.06 !important;
+}
+
+/* Override all SVG elements with white/rgba(255,...) colors */
+/* Body wrapper SVG - override all white strokes and fills */
+.light-theme .body-wrapper svg [stroke^="rgba(255"],
+.light-theme .body-wrapper svg [stroke="rgba(255,255,255,0.12)"],
+.light-theme .body-wrapper svg [stroke="rgba(255,255,255,0.1)"],
+.light-theme .body-wrapper svg [stroke="rgba(255,255,255,0.08)"],
+.light-theme .body-wrapper svg [stroke="rgba(255,255,255,0.06)"] {
+  stroke: rgba(50, 40, 70, 0.25) !important;
+}
+
+.light-theme .body-wrapper svg [fill^="rgba(255"],
+.light-theme .body-wrapper svg [fill="url(#body-depth)"] {
+  fill: rgba(50, 40, 70, 0.04) !important;
+}
+
+/* Labels - darker for light mode */
+.light-theme .label-chakra {
+  fill: rgba(40, 30, 60, 0.9) !important;
+}
+
+.light-theme .label-organ {
+  fill: rgba(40, 30, 60, 0.75) !important;
+}
+
+.light-theme .label-line {
+  stroke: rgba(40, 30, 60, 0.35) !important;
+}
+
+.light-theme .label-dot {
+  fill: rgba(40, 30, 60, 0.5) !important;
+}
+
+/* CSS class overrides from SVG internal styles */
+.light-theme .svg-stroke-light { stroke: rgba(50,40,70,0.3) !important; }
+.light-theme .svg-stroke-medium { stroke: rgba(50,40,70,0.35) !important; }
+.light-theme .svg-stroke-subtle { stroke: rgba(50,40,70,0.2) !important; }
+.light-theme .svg-stroke-faint { stroke: rgba(50,40,70,0.22) !important; }
+.light-theme .svg-fill-subtle { fill: rgba(50,40,70,0.05) !important; }
+.light-theme .svg-fill-medium { fill: rgba(50,40,70,0.08) !important; }
+.light-theme .svg-vertebra { fill: rgba(50,40,70,0.18) !important; }
 
 /* Light theme ambient orbs */
 .light-theme .ambient-orb {

@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 600" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 600" fill="none" class="body-svg">
   <!-- 
     RESONANCE BODY MAP - Anatomical Body SVG
-    Version: 1.0
+    Version: 1.1
     Purpose: Base layer for frequency visualization
     
     LAYERS (bottom to top):
@@ -15,7 +15,35 @@
     - Each element has data-region attribute for frequency mapping
     - Opacity and fill are controlled via CSS/JS
     - Designed for portrait orientation (300x600 viewBox)
+    - Uses CSS variables for theme support (light/dark mode)
   -->
+  
+  <style>
+    /* Default dark mode colors */
+    .svg-stroke-light { stroke: rgba(255,255,255,0.12); }
+    .svg-stroke-medium { stroke: rgba(255,255,255,0.15); }
+    .svg-stroke-subtle { stroke: rgba(255,255,255,0.08); }
+    .svg-stroke-faint { stroke: rgba(255,255,255,0.1); }
+    .svg-fill-subtle { fill: rgba(255,255,255,0.03); }
+    .svg-fill-medium { fill: rgba(255,255,255,0.05); }
+    .svg-vertebra { fill: rgba(255,255,255,0.08); }
+    
+    /* Light mode overrides - these work when parent has .light-theme */
+    :root.light-theme .svg-stroke-light,
+    .light-theme .svg-stroke-light { stroke: rgba(50,40,70,0.25); }
+    :root.light-theme .svg-stroke-medium,
+    .light-theme .svg-stroke-medium { stroke: rgba(50,40,70,0.3); }
+    :root.light-theme .svg-stroke-subtle,
+    .light-theme .svg-stroke-subtle { stroke: rgba(50,40,70,0.15); }
+    :root.light-theme .svg-stroke-faint,
+    .light-theme .svg-stroke-faint { stroke: rgba(50,40,70,0.18); }
+    :root.light-theme .svg-fill-subtle,
+    .light-theme .svg-fill-subtle { fill: rgba(50,40,70,0.04); }
+    :root.light-theme .svg-fill-medium,
+    .light-theme .svg-fill-medium { fill: rgba(50,40,70,0.06); }
+    :root.light-theme .svg-vertebra,
+    .light-theme .svg-vertebra { fill: rgba(50,40,70,0.15); }
+  </style>
   
   <defs>
     <!-- Gradient definitions for organ glows -->
@@ -70,18 +98,25 @@
       </feMerge>
     </filter>
     
-    <!-- Subtle body gradient for 3D effect -->
-    <linearGradient id="body-depth" x1="0%" y1="0%" x2="100%" y2="0%">
+    <!-- Gradient for dark mode -->
+    <linearGradient id="body-depth-dark" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="rgba(255,255,255,0.03)"/>
       <stop offset="50%" stop-color="rgba(255,255,255,0.08)"/>
       <stop offset="100%" stop-color="rgba(255,255,255,0.03)"/>
+    </linearGradient>
+    
+    <!-- Gradient for light mode -->
+    <linearGradient id="body-depth-light" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="rgba(50,40,70,0.03)"/>
+      <stop offset="50%" stop-color="rgba(50,40,70,0.08)"/>
+      <stop offset="100%" stop-color="rgba(50,40,70,0.03)"/>
     </linearGradient>
   </defs>
   
   <!-- ===== LAYER 1: BODY SILHOUETTE ===== -->
   <g id="body-silhouette" class="body-layer">
     <!-- Main body outline - elegant human form -->
-    <path id="body-outline" class="body-outline" d="
+    <path id="body-outline" class="body-outline svg-stroke-light svg-fill-subtle" d="
       M150 45
       C170 45, 185 55, 188 75
       C190 90, 185 100, 180 108
@@ -146,14 +181,12 @@
       C115 100, 110 90, 112 75
       C115 55, 130 45, 150 45
       Z"
-      stroke="rgba(255,255,255,0.12)"
-      stroke-width="1"
-      fill="url(#body-depth)"
+      stroke-width="1.5"
     />
     
     <!-- Head detail -->
-    <ellipse id="head" cx="150" cy="65" rx="38" ry="42" 
-             stroke="rgba(255,255,255,0.08)" stroke-width="0.5" fill="none"/>
+    <ellipse id="head" class="svg-stroke-subtle" cx="150" cy="65" rx="38" ry="42" 
+             stroke-width="0.5" fill="none"/>
   </g>
   
   <!-- ===== LAYER 2: SKELETAL SUGGESTION ===== -->
