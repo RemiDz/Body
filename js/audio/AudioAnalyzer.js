@@ -25,6 +25,11 @@ export class AudioAnalyzer {
     // Callbacks
     this.onError = null;
     this.onStateChange = null;
+    
+    // Fundamental frequency tracking
+    this.lastFundamental = 0;
+    this.fundamentalConfidence = 0;
+    this.harmonicProfile = [];
   }
   
   /**
@@ -109,8 +114,8 @@ export class AudioAnalyzer {
       
       // Create analyzer node with iOS-friendly settings
       this.analyser = this.audioContext.createAnalyser();
-      // Use smaller FFT size on iOS for better performance
-      this.analyser.fftSize = isIOS ? Math.min(this.config.fftSize, 2048) : this.config.fftSize;
+      // iOS: Use 4096 for ~10.8Hz bins (better low-freq resolution than 2048)
+      this.analyser.fftSize = isIOS ? 4096 : this.config.fftSize;
       this.analyser.smoothingTimeConstant = this.config.smoothingTimeConstant;
       this.analyser.minDecibels = this.config.minDecibels;
       this.analyser.maxDecibels = this.config.maxDecibels;
@@ -220,11 +225,10 @@ export class AudioAnalyzer {
     this.analyser.getFloatTimeDomainData(this.timeData);
     const rmsLevel = this.calculateRMS();
     
-    // Determine dominant frequency using fundamental estimation
+    // Determine dominant frequency using improved fundamental estimation
     // This reduces octave/harmonic jumps by preferring the base tone
     const dominant = peaks.length > 0 ? peaks[0] : null;
-    const fundamental = this.estimateFundamental(peaks);
-    const dominantFrequency = fundamental || (dominant ? dominant.frequency : 0);
+    const dominantFrequency = this.estimateFundamental(peaks);
     
     // Check if audio is active (above noise floor)
     const isActive = dominant !== null && dominant.db > this.config.noiseFloor;
@@ -234,6 +238,8 @@ export class AudioAnalyzer {
       dominantFrequency,
       dominantAmplitude: dominant ? dominant.amplitude : 0,
       dominantDb: dominant ? dominant.db : this.config.minDecibels,
+      fundamentalConfidence: this.fundamentalConfidence,
+      harmonicProfile: this.harmonicProfile,
       rmsLevel,
       isActive,
       binSize,
@@ -242,41 +248,153 @@ export class AudioAnalyzer {
   }
   
   /**
-   * Estimate the fundamental frequency from peaks using harmonic analysis
-   * Reduces octave/harmonic jumps by preferring the base tone
-   * @param {Array} peaks - Array of peak objects with frequency and amplitude
-   * @returns {number} Estimated fundamental frequency
+   * Improved fundamental frequency estimation using:
+   * 1. Harmonic Product Spectrum (HPS)
+   * 2. Peak-based harmonic analysis
+   * 3. Temporal smoothing
    */
   estimateFundamental(peaks) {
     if (!peaks || peaks.length === 0) return 0;
     
-    // Generate candidate fundamentals from top 5 peaks
-    const cands = [];
-    for (let i = 0; i < Math.min(peaks.length, 5); i++) {
-      const f = peaks[i].frequency;
-      cands.push(f, f / 2, f / 3);
+    const binSize = this.audioContext.sampleRate / this.analyser.fftSize;
+    
+    // Method 1: Harmonic Product Spectrum
+    const hpsResult = this.harmonicProductSpectrum(peaks, binSize);
+    
+    // Method 2: Peak-based harmonic analysis
+    const peakResult = this.estimateFundamentalFromPeaks(peaks);
+    
+    // Combine results
+    let bestFreq = 0;
+    let bestConfidence = 0;
+    
+    if (hpsResult.confidence > peakResult.confidence * 1.2) {
+      bestFreq = hpsResult.frequency;
+      bestConfidence = hpsResult.confidence;
+    } else if (peakResult.confidence > hpsResult.confidence * 1.2) {
+      bestFreq = peakResult.frequency;
+      bestConfidence = peakResult.confidence;
+    } else {
+      // Use the lower frequency (more likely fundamental)
+      if (hpsResult.frequency > 0 && peakResult.frequency > 0) {
+        const lower = Math.min(hpsResult.frequency, peakResult.frequency);
+        const higher = Math.max(hpsResult.frequency, peakResult.frequency);
+        const ratio = higher / lower;
+        
+        if (Math.abs(ratio - Math.round(ratio)) < 0.1) {
+          bestFreq = lower;
+          bestConfidence = Math.max(hpsResult.confidence, peakResult.confidence);
+        } else {
+          bestFreq = hpsResult.confidence > peakResult.confidence ? hpsResult.frequency : peakResult.frequency;
+          bestConfidence = Math.max(hpsResult.confidence, peakResult.confidence);
+        }
+      } else {
+        bestFreq = hpsResult.frequency || peakResult.frequency;
+        bestConfidence = Math.max(hpsResult.confidence, peakResult.confidence);
+      }
     }
     
-    const tol = 0.025; // 2.5% tolerance for harmonic matching
+    // Build harmonic profile
+    if (bestFreq > 0) {
+      this.harmonicProfile = this.buildHarmonicProfile(bestFreq, peaks);
+    }
+    
+    // Apply temporal smoothing
+    this.updateFundamentalTracking(bestFreq, bestConfidence);
+    
+    return this.lastFundamental;
+  }
+
+  /**
+   * Harmonic Product Spectrum analysis
+   */
+  harmonicProductSpectrum(peaks, binSize) {
+    if (peaks.length === 0) return { frequency: 0, confidence: 0 };
+    
+    const maxBin = Math.ceil(this.config.maxFrequency / binSize);
+    const spectrum = new Float32Array(maxBin).fill(0);
+    
+    for (const peak of peaks) {
+      const bin = Math.round(peak.frequency / binSize);
+      if (bin < maxBin) {
+        spectrum[bin] = peak.amplitude;
+      }
+    }
+    
+    const numHarmonics = 5;
+    const hps = new Float32Array(Math.floor(maxBin / numHarmonics)).fill(1);
+    
+    for (let h = 1; h <= numHarmonics; h++) {
+      for (let i = 0; i < hps.length; i++) {
+        const bin = i * h;
+        if (bin < spectrum.length) {
+          hps[i] *= (spectrum[bin] + 0.01);
+        }
+      }
+    }
+    
+    let maxVal = 0;
+    let maxBinIdx = 0;
+    const minBin = Math.ceil(this.config.minFrequency / binSize);
+    
+    for (let i = minBin; i < hps.length; i++) {
+      if (hps[i] > maxVal) {
+        maxVal = hps[i];
+        maxBinIdx = i;
+      }
+    }
+    
+    const frequency = maxBinIdx * binSize;
+    const avgHPS = hps.reduce((a, b) => a + b, 0) / hps.length;
+    const confidence = avgHPS > 0 ? Math.min(1, (maxVal / avgHPS - 1) / 5) : 0;
+    
+    return { frequency, confidence };
+  }
+
+  /**
+   * Estimate fundamental from peaks using harmonic relationships
+   */
+  estimateFundamentalFromPeaks(peaks) {
+    if (!peaks || peaks.length === 0) return { frequency: 0, confidence: 0 };
+    
+    const candidates = [];
+    const numPeaks = Math.min(peaks.length, 6);
+    
+    for (let i = 0; i < numPeaks; i++) {
+      const f = peaks[i].frequency;
+      candidates.push(f);
+      if (f / 2 >= this.config.minFrequency) candidates.push(f / 2);
+      if (f / 3 >= this.config.minFrequency) candidates.push(f / 3);
+      if (f / 4 >= this.config.minFrequency) candidates.push(f / 4);
+    }
+    
+    const tolerance = this.config.harmonicTolerance || 0.03;
     let bestF = 0;
     let bestScore = -1;
     
-    for (const f0 of cands) {
-      // Skip candidates outside valid frequency range
+    for (const f0 of candidates) {
       if (f0 < this.config.minFrequency || f0 > this.config.maxFrequency) continue;
       
       let score = 0;
-      for (const p of peaks) {
-        const ratio = p.frequency / f0;
+      let harmonicsFound = 0;
+      
+      for (const peak of peaks) {
+        const ratio = peak.frequency / f0;
         const k = Math.round(ratio);
         if (k < 1 || k > 12) continue;
         
         const err = Math.abs(ratio - k) / k;
-        if (err < tol) {
-          // Weight by amplitude and favor lower harmonics (1/k)
-          score += p.amplitude * (1 / k);
+        if (err < tolerance) {
+          score += peak.amplitude * (1 / Math.sqrt(k));
+          harmonicsFound++;
         }
       }
+      
+      if (harmonicsFound >= 2) {
+        score *= (1 + harmonicsFound * 0.1);
+      }
+      
+      score *= (1 + (this.config.fundamentalBias || 1.3) * (1 - f0 / this.config.maxFrequency));
       
       if (score > bestScore) {
         bestScore = score;
@@ -284,7 +402,74 @@ export class AudioAnalyzer {
       }
     }
     
-    return bestF;
+    const confidence = peaks.length > 0 ? Math.min(1, bestScore / (peaks.length * 0.5)) : 0;
+    
+    return { frequency: bestF, confidence };
+  }
+
+  /**
+   * Build harmonic profile
+   */
+  buildHarmonicProfile(fundamental, peaks) {
+    const profile = [];
+    const tolerance = 0.04;
+    
+    for (let h = 1; h <= 12; h++) {
+      const targetFreq = fundamental * h;
+      let found = null;
+      
+      for (const peak of peaks) {
+        const ratio = peak.frequency / targetFreq;
+        if (Math.abs(ratio - 1) < tolerance) {
+          found = peak;
+          break;
+        }
+      }
+      
+      profile.push({
+        harmonic: h,
+        frequency: targetFreq,
+        present: found !== null,
+        amplitude: found ? found.amplitude : 0
+      });
+    }
+    
+    return profile;
+  }
+
+  /**
+   * Track fundamental frequency over time for stability
+   */
+  updateFundamentalTracking(newFundamental, confidence) {
+    if (newFundamental === 0 || confidence < 0.2) {
+      this.fundamentalConfidence *= 0.9;
+      if (this.fundamentalConfidence < 0.1) {
+        this.lastFundamental = 0;
+      }
+      return;
+    }
+    
+    if (this.lastFundamental > 0) {
+      const ratio = newFundamental / this.lastFundamental;
+      const nearestHarmonic = Math.round(ratio);
+      const harmonicError = Math.abs(ratio - nearestHarmonic);
+      
+      if (harmonicError < 0.05 && nearestHarmonic >= 2) {
+        if (confidence < this.fundamentalConfidence * 1.5) {
+          return;
+        }
+      }
+    }
+    
+    const smoothingFactor = 0.3 + confidence * 0.4;
+    
+    if (this.lastFundamental === 0) {
+      this.lastFundamental = newFundamental;
+    } else {
+      this.lastFundamental = this.lastFundamental * (1 - smoothingFactor) + newFundamental * smoothingFactor;
+    }
+    
+    this.fundamentalConfidence = this.fundamentalConfidence * 0.7 + confidence * 0.3;
   }
   
   /**
@@ -341,8 +526,8 @@ export class AudioAnalyzer {
     // Sort by amplitude (strongest first)
     peaks.sort((a, b) => b.amplitude - a.amplitude);
     
-    // Return top peaks (limit to avoid processing too many)
-    return peaks.slice(0, 10);
+    // Return top peaks (12 for better harmonic analysis)
+    return peaks.slice(0, 12);
   }
   
   /**

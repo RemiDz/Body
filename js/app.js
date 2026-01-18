@@ -11,6 +11,8 @@ import { BodyRenderer } from './visual/BodyRenderer.js';
 import { GlowEngine } from './visual/GlowEngine.js';
 import { ParticleSystem } from './visual/ParticleSystem.js';
 import { AmbientEffects } from './visual/AmbientEffects.js';
+import { HarmonicCascade } from './visual/HarmonicCascade.js';
+import { CymaticsOverlay } from './visual/CymaticsOverlay.js';
 import { FrequencyDisplay } from './ui/FrequencyDisplay.js';
 import { Controls } from './ui/Controls.js';
 import { Calibration } from './ui/Calibration.js';
@@ -32,6 +34,8 @@ class ResonanceApp {
     this.glowEngine = null;
     this.particleSystem = null;
     this.ambientEffects = null;
+    this.harmonicCascade = null;
+    this.cymaticsOverlay = null;
     this.frequencyDisplay = null;
     this.controls = null;
     this.calibration = null;
@@ -131,6 +135,60 @@ class ResonanceApp {
     this.ambientEffects = new AmbientEffects(ambientContainer);
     this.ambientEffects.init();
     this.ambientEffects.start();
+    
+    // Harmonic cascade visualization
+    this.harmonicCascade = new HarmonicCascade();
+    this.harmonicCascade.init('.body-container');
+    
+    // Cymatics overlay visualization
+    this.cymaticsOverlay = new CymaticsOverlay({
+      positionMode: 'center'  // or 'region' to follow active chakra
+    });
+    this.cymaticsOverlay.init('.body-container');
+    
+    // Setup toggle handlers for new visualizations
+    this.setupVisualizationToggles();
+  }
+  
+  /**
+   * Setup toggle handlers for visualization features
+   */
+  setupVisualizationToggles() {
+    // Cascade toggle
+    const cascadeToggle = document.getElementById('cascade-toggle');
+    if (cascadeToggle) {
+      cascadeToggle.addEventListener('change', (e) => {
+        this.harmonicCascade?.setEnabled(e.target.checked);
+      });
+    }
+    
+    // Cymatics toggle
+    const cymaticsToggle = document.getElementById('cymatics-toggle');
+    if (cymaticsToggle) {
+      cymaticsToggle.addEventListener('change', (e) => {
+        this.cymaticsOverlay?.setEnabled(e.target.checked);
+      });
+    }
+    
+    // Cymatics position buttons
+    const cymaticsCenterBtn = document.getElementById('cymatics-center');
+    const cymaticsRegionBtn = document.getElementById('cymatics-region');
+    
+    if (cymaticsCenterBtn) {
+      cymaticsCenterBtn.addEventListener('click', () => {
+        this.cymaticsOverlay?.setPositionMode('center');
+        cymaticsCenterBtn.classList.add('active');
+        cymaticsRegionBtn?.classList.remove('active');
+      });
+    }
+    
+    if (cymaticsRegionBtn) {
+      cymaticsRegionBtn.addEventListener('click', () => {
+        this.cymaticsOverlay?.setPositionMode('region');
+        cymaticsRegionBtn.classList.add('active');
+        cymaticsCenterBtn?.classList.remove('active');
+      });
+    }
   }
   
   /**
@@ -301,6 +359,21 @@ class ResonanceApp {
           );
         }
         
+        // Update harmonic cascade visualization
+        this.harmonicCascade?.update(
+          audioData.harmonicProfile,
+          audioData.dominantFrequency,
+          deltaTime
+        );
+        
+        // Update cymatics overlay visualization
+        this.cymaticsOverlay?.update(
+          audioData.dominantFrequency,
+          audioData.dominantAmplitude,
+          dominant?.name,
+          deltaTime
+        );
+        
         // Update ambient effects
         const totalEnergy = this.frequencyMapper.getTotalEnergy();
         this.ambientEffects?.setIntensity(totalEnergy * 0.3);
@@ -336,7 +409,15 @@ class ResonanceApp {
         // Reset ambient effects
         this.ambientEffects?.setIntensity(0);
         this.ambientEffects?.resetColor();
+        
+        // Fade out cascade and cymatics
+        this.harmonicCascade?.update(null, 0, deltaTime);
+        this.cymaticsOverlay?.update(0, 0, null, deltaTime);
       }
+      
+      // Render new visualizations
+      this.harmonicCascade?.render();
+      this.cymaticsOverlay?.render();
     }
     
     // Continue loop
@@ -456,6 +537,8 @@ class ResonanceApp {
     this.bodyRenderer?.destroy();
     this.particleSystem?.destroy();
     this.ambientEffects?.destroy();
+    this.harmonicCascade?.destroy();
+    this.cymaticsOverlay?.destroy();
     this.controls?.destroy();
     
     this.audioAnalyzer = null;
@@ -465,6 +548,8 @@ class ResonanceApp {
     this.glowEngine = null;
     this.particleSystem = null;
     this.ambientEffects = null;
+    this.harmonicCascade = null;
+    this.cymaticsOverlay = null;
     this.frequencyDisplay = null;
     this.controls = null;
     this.calibration = null;

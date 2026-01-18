@@ -17,9 +17,14 @@ export class FrequencyMapper {
     // Target intensities (what we're approaching)
     this.targetIntensities = {};
     
+    // Resonance-based intensity tracking
+    this.resonanceValues = {};
+    this.harmonicContributions = {};
+    
     // Hysteresis state for dominant region stability
     this.lastDominant = null;
     this.lastDominantTime = 0;
+    this.dominantHistory = [];
     
     // Initialize all regions to 0
     this.reset();
@@ -32,9 +37,12 @@ export class FrequencyMapper {
     for (const regionName of Object.keys(this.regions)) {
       this.intensities[regionName] = 0;
       this.targetIntensities[regionName] = 0;
+      this.resonanceValues[regionName] = 0;
+      this.harmonicContributions[regionName] = 0;
     }
     this.lastDominant = null;
     this.lastDominantTime = 0;
+    this.dominantHistory = [];
   }
   
   /**
@@ -58,14 +66,23 @@ export class FrequencyMapper {
    * @returns {Object} Current region intensities
    */
   update(audioData, deltaTime = 16.67) {
-    // Reset targets
+    // Reset targets and tracking values
     for (const regionName of Object.keys(this.regions)) {
       this.targetIntensities[regionName] = 0;
+      this.resonanceValues[regionName] = 0;
+      this.harmonicContributions[regionName] = 0;
     }
 
-    if (audioData && audioData.isActive && audioData.peaks) {
-      for (const peak of audioData.peaks) {
-        this.processPeak(peak);
+    if (audioData && audioData.isActive) {
+      if (audioData.peaks) {
+        for (const peak of audioData.peaks) {
+          this.processPeak(peak);
+        }
+      }
+      
+      // Process harmonic profile if available
+      if (audioData.harmonicProfile && audioData.dominantFrequency > 0) {
+        this.processHarmonicProfile(audioData.harmonicProfile, audioData.dominantFrequency);
       }
     }
 
@@ -97,12 +114,14 @@ export class FrequencyMapper {
   
   /**
    * Process a single frequency peak and update target intensities
-   * Implements boundary blending for smooth transitions between regions
+   * Implements resonance-based intensity with boundary blending
    */
   processPeak(peak) {
     const { frequency, amplitude } = peak;
     
-    // 1) Find primary region for this frequency
+    if (frequency < 30 || frequency > 2000) return;
+    
+    // Find primary region
     let primary = null;
     for (const [regionName, config] of Object.entries(this.regions)) {
       if (frequency >= config.min && frequency < config.max) {
@@ -114,46 +133,49 @@ export class FrequencyMapper {
     
     const cfg = this.regions[primary];
     const width = cfg.max - cfg.min;
-    const center = (cfg.min + cfg.max) / 2;
+    const center = cfg.center || (cfg.min + cfg.max) / 2;
     
-    // 2) Calculate edge falloff (existing behavior preserved)
-    const dist = Math.abs(frequency - center);
-    const normDist = dist / (width / 2);
-    const edgeFalloff = 1 - (normDist * 0.3);
+    // Calculate resonance strength (Gaussian curve)
+    const distance = Math.abs(frequency - center);
+    const halfWidth = width / 2;
+    const sigma = halfWidth * 0.7;
+    const resonance = Math.exp(-(distance * distance) / (2 * sigma * sigma));
     
-    // 3) Boundary blending - 18% of region width as blend zone
-    const blend = width * 0.18;
+    // Track resonance value
+    this.resonanceValues[primary] = Math.max(this.resonanceValues[primary], resonance);
+    
+    // Calculate boundary blend weights
+    const blend = width * 0.15;
     let wPrimary = 1;
     
     const { prev, next } = this.getNeighborRegions(primary);
     
     // Blend with previous region near lower boundary
-    if (prev) {
-      const tLow = smoothstep(cfg.min, cfg.min + blend, frequency);
-      wPrimary = Math.min(wPrimary, tLow);
-      const wPrev = 1 - tLow;
-      if (wPrev > 0) {
-        const intenPrev = amplitude * edgeFalloff * wPrev * this.config.glowIntensityMultiplier;
-        this.targetIntensities[prev] = Math.max(this.targetIntensities[prev] || 0, intenPrev);
+    if (prev && frequency < cfg.min + blend) {
+      const t = smoothstep(cfg.min, cfg.min + blend, frequency);
+      wPrimary = t;
+      const wPrev = 1 - t;
+      if (wPrev > 0.05) {
+        const prevIntensity = amplitude * wPrev * resonance * this.config.glowIntensityMultiplier;
+        this.targetIntensities[prev] = Math.max(this.targetIntensities[prev], prevIntensity);
       }
     }
     
     // Blend with next region near upper boundary
-    if (next) {
-      const tHigh = smoothstep(cfg.max - blend, cfg.max, frequency);
-      wPrimary = Math.min(wPrimary, 1 - tHigh);
-      const wNext = tHigh;
-      if (wNext > 0) {
-        const intenNext = amplitude * edgeFalloff * wNext * this.config.glowIntensityMultiplier;
-        this.targetIntensities[next] = Math.max(this.targetIntensities[next] || 0, intenNext);
+    if (next && frequency > cfg.max - blend) {
+      const t = smoothstep(cfg.max - blend, cfg.max, frequency);
+      wPrimary = Math.min(wPrimary, 1 - t);
+      if (t > 0.05) {
+        const nextIntensity = amplitude * t * resonance * this.config.glowIntensityMultiplier;
+        this.targetIntensities[next] = Math.max(this.targetIntensities[next], nextIntensity);
       }
     }
     
-    // 4) Apply intensity to primary region with blended weight
-    const intensity = amplitude * edgeFalloff * wPrimary * this.config.glowIntensityMultiplier;
-    this.targetIntensities[primary] = Math.max(this.targetIntensities[primary] || 0, intensity);
+    // Apply intensity to primary region
+    const intensity = amplitude * wPrimary * resonance * this.config.glowIntensityMultiplier;
+    this.targetIntensities[primary] = Math.max(this.targetIntensities[primary], intensity);
     
-    // 5) Handle harmonics - frequencies that span multiple regions
+    // Handle harmonics - frequencies that span multiple regions
     this.processHarmonics(peak);
   }
   
@@ -167,9 +189,8 @@ export class FrequencyMapper {
     // Only process harmonics for strong enough signals
     if (amplitude < 0.3) return;
     
-    // Check if this might be a harmonic of a lower fundamental
-    // Common harmonics: 2x, 3x, 4x, 5x, 6x, etc.
-    const harmonicRatios = [0.5, 2, 3, 4, 5, 6];
+    // Only process harmonics upward (removed 0.5 subharmonic - rarely exists in real audio)
+    const harmonicRatios = [2, 3, 4, 5, 6];
     
     for (const ratio of harmonicRatios) {
       const relatedFreq = frequency * ratio;
@@ -192,8 +213,41 @@ export class FrequencyMapper {
   }
   
   /**
-   * Get the dominant region (highest intensity) with hysteresis for stability
-   * Prevents flickering when two regions have similar intensity
+   * Process harmonic profile for accurate harmonic cascading
+   */
+  processHarmonicProfile(harmonicProfile, fundamental) {
+    if (!harmonicProfile || harmonicProfile.length === 0) return;
+    
+    for (const harmonic of harmonicProfile) {
+      if (!harmonic.present || harmonic.amplitude < 0.1) continue;
+      
+      const freq = harmonic.frequency;
+      
+      for (const [regionName, config] of Object.entries(this.regions)) {
+        if (freq >= config.min && freq < config.max) {
+          const harmonicWeight = 1 / Math.sqrt(harmonic.harmonic);
+          const contribution = harmonic.amplitude * harmonicWeight * 0.5;
+          
+          this.harmonicContributions[regionName] = Math.max(
+            this.harmonicContributions[regionName],
+            contribution
+          );
+          
+          const intensity = contribution * this.config.glowIntensityMultiplier;
+          this.targetIntensities[regionName] = Math.max(
+            this.targetIntensities[regionName],
+            intensity
+          );
+          
+          break;
+        }
+      }
+    }
+  }
+  
+  /**
+   * Get the dominant region (highest intensity) with improved stability
+   * Uses hysteresis and dominant history tracking to prevent flickering
    */
   getDominantRegion() {
     const now = performance.now();
@@ -208,23 +262,34 @@ export class FrequencyMapper {
       }
     }
     
-    const peakThreshold = this.config.peakThreshold ?? 0.25;
+    const peakThreshold = this.config.peakThreshold ?? 0.2;
     if (maxIntensity < peakThreshold) {
       return null;
     }
     
-    // Hysteresis: prevent rapid toggling between regions
-    const HOLD_MS = 450;          // Minimum time before switching
-    const SWITCH_MARGIN = 1.18;   // New region must be 18% stronger to switch
+    // Update history
+    this.dominantHistory.push({ region: dominant, time: now, intensity: maxIntensity });
+    this.dominantHistory = this.dominantHistory.filter(h => now - h.time < 500);
     
-    if (this.lastDominant && dominant && dominant !== this.lastDominant) {
+    // Count occurrences in history
+    const counts = {};
+    for (const h of this.dominantHistory) {
+      counts[h.region] = (counts[h.region] || 0) + 1;
+    }
+    
+    // Hysteresis: prevent rapid toggling between regions
+    const HOLD_MS = 400;          // Minimum time before switching
+    const SWITCH_MARGIN = 1.25;   // New region must be 25% stronger to switch
+    
+    if (this.lastDominant && dominant !== this.lastDominant) {
       const cur = this.intensities[this.lastDominant] || 0;
       const cand = this.intensities[dominant] || 0;
       
       const recentlySwitched = (now - this.lastDominantTime) < HOLD_MS;
       const notStrongEnough = cand < cur * SWITCH_MARGIN;
+      const notFrequentEnough = counts[dominant] < this.dominantHistory.length * 0.6;
       
-      if (recentlySwitched || notStrongEnough) {
+      if (recentlySwitched || (notStrongEnough && notFrequentEnough)) {
         // Keep previous dominant - not strong enough or too soon to switch
         dominant = this.lastDominant;
         maxIntensity = cur;
@@ -242,6 +307,8 @@ export class FrequencyMapper {
     return {
       name: dominant,
       intensity: maxIntensity,
+      resonance: this.resonanceValues[dominant] || 0,
+      harmonicContribution: this.harmonicContributions[dominant] || 0,
       config: this.regions[dominant]
     };
   }
