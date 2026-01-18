@@ -68,8 +68,10 @@ export class Controls {
         // Reset flag after a short delay (longer than click event delay)
         const timeoutId = setTimeout(() => {
           touchHandled = false;
-          // Remove timeout from tracking set
-          this.touchTimeouts.delete(timeoutId);
+          // Remove timeout from tracking set (check exists to handle destroy case)
+          if (this.touchTimeouts) {
+            this.touchTimeouts.delete(timeoutId);
+          }
         }, TOUCH_HANDLED_RESET_DELAY);
         // Track timeout for cleanup
         this.touchTimeouts.add(timeoutId);
