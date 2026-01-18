@@ -274,7 +274,7 @@ class ResonanceApp {
         }
         
         // Update frequency mapping
-        const intensities = this.frequencyMapper.update(audioData);
+        const intensities = this.frequencyMapper.update(audioData, deltaTime);
         
         // Update glow engine
         this.glowEngine.update(intensities, deltaTime);
@@ -324,7 +324,7 @@ class ResonanceApp {
         }
         
         // Decay existing visuals
-        const decayedIntensities = this.frequencyMapper.update(null);
+        const decayedIntensities = this.frequencyMapper.update(null, deltaTime);
         this.glowEngine.update(decayedIntensities, deltaTime);
         this.bodyRenderer?.setAllRegions(decayedIntensities);
         

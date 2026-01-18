@@ -4,7 +4,7 @@
  */
 
 import { FREQUENCY_REGIONS, VISUAL_CONFIG } from '../config.js';
-import { clamp, approach, smoothstep } from '../utils/math.js';
+import { clamp, smoothstep, expDecay } from '../utils/math.js';
 
 export class FrequencyMapper {
   constructor(options = {}) {
@@ -54,45 +54,44 @@ export class FrequencyMapper {
   /**
    * Update region intensities based on audio analysis data
    * @param {Object} audioData - Data from AudioAnalyzer.analyze()
+   * @param {number} deltaTime - Time since last update in ms (defaults to 16.67ms for 60fps)
    * @returns {Object} Current region intensities
    */
-  update(audioData) {
+  update(audioData, deltaTime = 16.67) {
     // Reset targets
     for (const regionName of Object.keys(this.regions)) {
       this.targetIntensities[regionName] = 0;
     }
-    
+
     if (audioData && audioData.isActive && audioData.peaks) {
-      // Process each peak
       for (const peak of audioData.peaks) {
         this.processPeak(peak);
       }
     }
-    
-    // Smooth transition to target values
-    const decayRate = this.config.glowDecayRate;
-    const attackRate = 1 - (this.config.attackTime / 1000); // Faster attack
-    
+
+    const dt = Math.max(0, deltaTime) / 1000;
+    const attackTau = Math.max(0.01, (this.config.attackTime || 100) / 1000);
+    const decayTau = Math.max(0.01, (this.config.decayTime || 300) / 1000);
+
     for (const regionName of Object.keys(this.regions)) {
       const target = this.targetIntensities[regionName];
       const current = this.intensities[regionName];
-      
+
       if (target > current) {
-        // Attack - fast rise
-        this.intensities[regionName] = approach(current, target, attackRate);
+        // Smooth approach to target (time-based)
+        this.intensities[regionName] = expDecay(current, target, 1 / attackTau, dt);
       } else {
-        // Decay - slow fall
-        this.intensities[regionName] = current * decayRate;
+        // Smooth decay toward 0 (time-based)
+        this.intensities[regionName] = expDecay(current, 0, 1 / decayTau, dt);
       }
-      
-      // Clamp to valid range
+
       this.intensities[regionName] = clamp(
         this.intensities[regionName],
         this.config.glowMinOpacity,
         this.config.glowMaxOpacity
       );
     }
-    
+
     return { ...this.intensities };
   }
   

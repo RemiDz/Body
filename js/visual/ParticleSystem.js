@@ -7,17 +7,6 @@
 import { VISUAL_CONFIG, FREQUENCY_REGIONS } from '../config.js';
 import { randomRange, randomInt, clamp } from '../utils/math.js';
 
-// Chakra center Y positions for energy channel paths
-const CHAKRA_CENTERS = {
-  crown: { x: 103, y: 6 },
-  thirdEye: { x: 103, y: 14 },
-  throat: { x: 103, y: 26 },
-  heart: { x: 103, y: 58 },
-  solar: { x: 103, y: 90 },
-  sacral: { x: 103, y: 108 },
-  root: { x: 103, y: 120 }
-};
-
 // Adjacent region mapping for gravitation
 const ADJACENT_REGIONS = {
   root: ['sacral'],
@@ -40,6 +29,9 @@ export class ParticleSystem {
     this.activeParticles = [];
     this.maxParticles = this.config.maxParticles || 60;
     
+    // Screen-space region centers cache (fixes SVG/viewBox coordinate mismatch)
+    this.regionCenters = {};
+    
     // Pre-create particle elements
     this.initPool();
     
@@ -58,39 +50,44 @@ export class ParticleSystem {
   }
   
   /**
+   * Create a single particle record with all required fields
+   */
+  createParticleRecord() {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.display = 'none';
+    this.container.appendChild(particle);
+
+    return {
+      element: particle,
+      active: false,
+      startTime: 0,
+      lifetime: 0,
+      startX: 0,
+      startY: 0,
+      endX: 0,
+      endY: 0,
+      controlX1: 0,
+      controlY1: 0,
+      controlX2: 0,
+      controlY2: 0,
+      useCurve: false,
+      size: 4,
+      baseSize: 4,
+      color: '#ffffff',
+      opacity: 0.8,
+      regionName: '',
+      gravitateToward: null,
+      gravitateStrength: 0
+    };
+  }
+  
+  /**
    * Initialize particle pool with reusable DOM elements
    */
   initPool() {
     for (let i = 0; i < this.maxParticles; i++) {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      particle.style.display = 'none';
-      this.container.appendChild(particle);
-      
-      this.pool.push({
-        element: particle,
-        active: false,
-        startTime: 0,
-        lifetime: 0,
-        startX: 0,
-        startY: 0,
-        endX: 0,
-        endY: 0,
-        // Bezier curve control points for curved paths
-        controlX1: 0,
-        controlY1: 0,
-        controlX2: 0,
-        controlY2: 0,
-        useCurve: false,
-        size: 4,
-        baseSize: 4,
-        color: '#ffffff',
-        opacity: 0.8,
-        regionName: '',
-        // Gravitation target
-        gravitateToward: null,
-        gravitateStrength: 0
-      });
+      this.pool.push(this.createParticleRecord());
     }
   }
   
@@ -110,6 +107,16 @@ export class ParticleSystem {
     this.currentIntensities = { ...regionIntensities };
     this.dominantFrequency = dominantFrequency;
     
+    // Cache screen-space centers for all regions (fixes SVG/viewBox mismatch)
+    this.regionCenters = {};
+    if (regionBounds) {
+      for (const [name, b] of Object.entries(regionBounds)) {
+        if (b && Number.isFinite(b.centerX) && Number.isFinite(b.centerY)) {
+          this.regionCenters[name] = { x: b.centerX, y: b.centerY };
+        }
+      }
+    }
+    
     // Update pulse phase based on dominant frequency (creates rhythm)
     if (dominantFrequency > 0) {
       // Pulse rate scales with frequency (lower freq = slower pulse)
@@ -121,7 +128,7 @@ export class ParticleSystem {
     // Potentially spawn new particles for active regions
     for (const [regionName, intensity] of Object.entries(regionIntensities)) {
       if (intensity >= this.config.particleSpawnThreshold) {
-        this.maybeSpawnParticle(regionName, intensity, regionBounds[regionName], now);
+        this.maybeSpawnParticle(regionName, intensity, regionBounds, now);
       }
     }
     
@@ -132,8 +139,18 @@ export class ParticleSystem {
   /**
    * Maybe spawn a new particle for a region
    */
-  maybeSpawnParticle(regionName, intensity, bounds, now) {
+  maybeSpawnParticle(regionName, intensity, regionBounds, now) {
+    const bounds = regionBounds?.[regionName];
     if (!bounds) return;
+    
+    // Helper to get screen-space center for a region
+    const getCenter = (r) => {
+      const c = this.regionCenters?.[r];
+      if (c) return c;
+      const b = regionBounds?.[r];
+      if (b) return { x: b.centerX, y: b.centerY };
+      return { x: bounds.centerX, y: bounds.centerY };
+    };
     
     // Check spawn probability
     const spawnChance = intensity * this.config.particleSpawnRate;
@@ -145,7 +162,6 @@ export class ParticleSystem {
     
     // Configure particle
     const config = this.regions[regionName];
-    const chakraCenter = CHAKRA_CENTERS[regionName];
     
     // Random position within region bounds
     const startX = bounds.centerX + (Math.random() - 0.5) * bounds.width * 0.8;
@@ -173,7 +189,7 @@ export class ParticleSystem {
       if (activeAdjacent.length > 0 && Math.random() < 0.5) {
         // Curve toward an adjacent active region
         const targetRegion = activeAdjacent[Math.floor(Math.random() * activeAdjacent.length)];
-        const targetCenter = CHAKRA_CENTERS[targetRegion];
+        const targetCenter = getCenter(targetRegion);
         
         gravitateToward = targetRegion;
         gravitateStrength = this.currentIntensities[targetRegion] * 0.5;
@@ -304,7 +320,9 @@ export class ParticleSystem {
         const targetIntensity = this.currentIntensities[targetRegion] || 0;
         
         if (targetIntensity > 0.1) {
-          const targetCenter = CHAKRA_CENTERS[targetRegion];
+          const targetCenter = this.regionCenters?.[targetRegion];
+          if (!targetCenter) continue;
+          
           const gravitateForce = particle.gravitateStrength * targetIntensity;
           
           // Gently pull toward target chakra center
@@ -379,7 +397,7 @@ export class ParticleSystem {
       // Delay each particle slightly
       setTimeout(() => {
         if (this.isEnabled) {
-          this.maybeSpawnParticle(regionName, 1.0, bounds, performance.now());
+          this.maybeSpawnParticle(regionName, 1.0, { [regionName]: bounds }, performance.now());
         }
       }, i * 50);
     }
@@ -414,24 +432,7 @@ export class ParticleSystem {
     
     // Add more if needed
     while (this.pool.length < this.maxParticles) {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      particle.style.display = 'none';
-      this.container.appendChild(particle);
-      
-      this.pool.push({
-        element: particle,
-        active: false,
-        startTime: 0,
-        lifetime: 0,
-        startX: 0,
-        startY: 0,
-        endX: 0,
-        endY: 0,
-        size: 4,
-        color: '#ffffff',
-        opacity: 0.8
-      });
+      this.pool.push(this.createParticleRecord());
     }
   }
   
