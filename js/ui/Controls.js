@@ -29,6 +29,9 @@ export class Controls {
     this.onStop = null;
     this.onSettingsChange = null;
     
+    // Touch handler timeout tracking
+    this.touchTimeouts = [];
+    
     // Bind event handlers
     this.bindEvents();
   }
@@ -38,6 +41,9 @@ export class Controls {
    */
   addTapHandler(element, handler) {
     if (!element) return;
+    
+    // Delay before resetting touch handled flag (ms)
+    const TOUCH_HANDLED_RESET_DELAY = 500;
     
     let touchMoved = false;
     let touchHandled = false;
@@ -59,7 +65,16 @@ export class Controls {
         // Call handler synchronously to maintain user gesture context for iOS
         handler(e);
         // Reset flag after a short delay (longer than click event delay)
-        setTimeout(() => { touchHandled = false; }, 500);
+        const timeoutId = setTimeout(() => { 
+          touchHandled = false;
+          // Remove timeout from tracking array
+          const index = this.touchTimeouts.indexOf(timeoutId);
+          if (index > -1) {
+            this.touchTimeouts.splice(index, 1);
+          }
+        }, TOUCH_HANDLED_RESET_DELAY);
+        // Track timeout for cleanup
+        this.touchTimeouts.push(timeoutId);
       }
     }, { passive: true });
     
@@ -405,6 +420,10 @@ export class Controls {
    * Destroy and clean up
    */
   destroy() {
+    // Clear all pending touch timeouts
+    this.touchTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+    this.touchTimeouts = [];
+    
     // Remove event listeners would go here if we stored references
     this.onStart = null;
     this.onStop = null;
