@@ -13,6 +13,9 @@ import { ParticleSystem } from './visual/ParticleSystem.js';
 import { AmbientEffects } from './visual/AmbientEffects.js';
 import { HarmonicCascade } from './visual/HarmonicCascade.js';
 import { CymaticsOverlay } from './visual/CymaticsOverlay.js';
+import { HarmonicLines } from './visual/HarmonicLines.js';
+import { ResonanceRings } from './visual/ResonanceRings.js';
+import { SpectrumArc } from './visual/SpectrumArc.js';
 import { FrequencyDisplay } from './ui/FrequencyDisplay.js';
 import { Controls } from './ui/Controls.js';
 import { Calibration } from './ui/Calibration.js';
@@ -36,6 +39,9 @@ class ResonanceApp {
     this.ambientEffects = null;
     this.harmonicCascade = null;
     this.cymaticsOverlay = null;
+    this.harmonicLines = null;
+    this.resonanceRings = null;
+    this.spectrumArc = null;
     this.frequencyDisplay = null;
     this.controls = null;
     this.calibration = null;
@@ -145,6 +151,12 @@ class ResonanceApp {
       positionMode: 'center'  // or 'region' to follow active chakra
     });
     this.cymaticsOverlay.init('.body-container');
+    
+    // Harmonic lines visualization
+    this.harmonicLines = new HarmonicLines('#bodyContainer');
+    
+    // Resonance rings visualization
+    this.resonanceRings = new ResonanceRings('#bodyContainer');
   }
   
   /**
@@ -196,6 +208,11 @@ class ResonanceApp {
       this.noiseGate = new NoiseGate({
         threshold: this.calibration?.noiseFloor || -55
       });
+      
+      // Initialize spectrum arc (requires audioAnalyzer)
+      if (!this.spectrumArc) {
+        this.spectrumArc = new SpectrumArc('#bodyContainer', this.audioAnalyzer);
+      }
       
       // Apply current settings
       this.applySettings(this.calibration?.getSettings() || {});
@@ -330,6 +347,26 @@ class ResonanceApp {
           deltaTime
         );
         
+        // Update harmonic lines visualization
+        if (audioData && audioData.fundamentalConfidence > 0.4) {
+          this.harmonicLines?.update(
+            this.frequencyMapper.harmonicContributions,
+            this.frequencyMapper.intensities,
+            this.glowEngine.glowStates
+          );
+        } else {
+          this.harmonicLines?.clear();
+        }
+        
+        // Update resonance rings visualization
+        this.resonanceRings?.update(
+          this.frequencyMapper.resonanceValues,
+          this.frequencyMapper.intensities
+        );
+        
+        // Update spectrum arc visualization
+        this.spectrumArc?.update(audioData);
+        
         // Update ambient effects
         const totalEnergy = this.frequencyMapper.getTotalEnergy();
         this.ambientEffects?.setIntensity(totalEnergy * 0.3);
@@ -369,6 +406,11 @@ class ResonanceApp {
         // Fade out cascade and cymatics
         this.harmonicCascade?.update(null, 0, deltaTime);
         this.cymaticsOverlay?.update(0, 0, null, deltaTime);
+        
+        // Clear harmonic lines, resonance rings, and spectrum arc
+        this.harmonicLines?.clear();
+        this.resonanceRings?.clear();
+        this.spectrumArc?.clear();
       }
       
       // Render new visualizations
@@ -510,6 +552,9 @@ class ResonanceApp {
     this.ambientEffects?.destroy();
     this.harmonicCascade?.destroy();
     this.cymaticsOverlay?.destroy();
+    this.harmonicLines?.destroy();
+    this.resonanceRings?.destroy();
+    this.spectrumArc?.destroy();
     this.controls?.destroy();
     
     this.audioAnalyzer = null;
@@ -521,6 +566,9 @@ class ResonanceApp {
     this.ambientEffects = null;
     this.harmonicCascade = null;
     this.cymaticsOverlay = null;
+    this.harmonicLines = null;
+    this.resonanceRings = null;
+    this.spectrumArc = null;
     this.frequencyDisplay = null;
     this.controls = null;
     this.calibration = null;
@@ -557,6 +605,9 @@ window.addEventListener('resize', () => {
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
     app.cacheRegionBounds();
+    app.harmonicLines?.clearCache();
+    app.resonanceRings?.clearCache();
+    app.spectrumArc?.clearCache();
   }, 250);
 });
 
