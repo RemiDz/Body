@@ -425,7 +425,7 @@ body {
 }
 
 .resonance-ring.resonance-high {
-  filter: drop-shadow(0 0 8px currentColor);
+  filter: drop-shadow(0 0 3px currentColor);
 }
 
 @keyframes ring-rotate {

@@ -32,6 +32,9 @@ export class ParticleSystem {
     // Screen-space region centers cache (fixes SVG/viewBox coordinate mismatch)
     this.regionCenters = {};
     
+    // Container offset cache for proper positioning
+    this.containerOffset = { x: 0, y: 0 };
+    
     // Pre-create particle elements
     this.initPool();
     
@@ -107,12 +110,20 @@ export class ParticleSystem {
     this.currentIntensities = { ...regionIntensities };
     this.dominantFrequency = dominantFrequency;
     
-    // Cache screen-space centers for all regions (fixes SVG/viewBox mismatch)
+    // Update container offset for proper coordinate conversion
+    const containerRect = this.container.getBoundingClientRect();
+    this.containerOffset = { x: containerRect.left, y: containerRect.top };
+    
+    // Cache container-relative centers for all regions (fixes SVG/viewBox mismatch and horizontal mode)
     this.regionCenters = {};
     if (regionBounds) {
       for (const [name, b] of Object.entries(regionBounds)) {
         if (b && Number.isFinite(b.centerX) && Number.isFinite(b.centerY)) {
-          this.regionCenters[name] = { x: b.centerX, y: b.centerY };
+          // Convert screen coordinates to container-relative coordinates
+          this.regionCenters[name] = { 
+            x: b.centerX - this.containerOffset.x, 
+            y: b.centerY - this.containerOffset.y 
+          };
         }
       }
     }
@@ -143,13 +154,19 @@ export class ParticleSystem {
     const bounds = regionBounds?.[regionName];
     if (!bounds) return;
     
-    // Helper to get screen-space center for a region
+    // Helper to get container-relative center for a region
     const getCenter = (r) => {
       const c = this.regionCenters?.[r];
       if (c) return c;
       const b = regionBounds?.[r];
-      if (b) return { x: b.centerX, y: b.centerY };
-      return { x: bounds.centerX, y: bounds.centerY };
+      if (b) return { 
+        x: b.centerX - this.containerOffset.x, 
+        y: b.centerY - this.containerOffset.y 
+      };
+      return { 
+        x: bounds.centerX - this.containerOffset.x, 
+        y: bounds.centerY - this.containerOffset.y 
+      };
     };
     
     // Check spawn probability
@@ -163,9 +180,11 @@ export class ParticleSystem {
     // Configure particle
     const config = this.regions[regionName];
     
-    // Random position within region bounds
-    const startX = bounds.centerX + (Math.random() - 0.5) * bounds.width * 0.8;
-    const startY = bounds.centerY + (Math.random() - 0.5) * bounds.height * 0.8;
+    // Random position within region bounds - convert to container-relative coordinates
+    const containerRelativeCenterX = bounds.centerX - this.containerOffset.x;
+    const containerRelativeCenterY = bounds.centerY - this.containerOffset.y;
+    const startX = containerRelativeCenterX + (Math.random() - 0.5) * bounds.width * 0.8;
+    const startY = containerRelativeCenterY + (Math.random() - 0.5) * bounds.height * 0.8;
     
     // Random size
     const size = randomRange(this.config.particleSize[0], this.config.particleSize[1]);

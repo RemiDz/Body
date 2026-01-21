@@ -23,8 +23,8 @@ export class ResonanceRings {
     // Cache for region center positions
     this.regionCenterCache = {};
     
-    // Ring configuration
-    this.ringRadius = 35;
+    // Ring configuration - subtle, non-distracting
+    this.ringRadius = 28;
     this.circumference = 2 * Math.PI * this.ringRadius;
     
     // Create SVG element
@@ -110,12 +110,12 @@ export class ResonanceRings {
     // Stroke color
     circle.setAttribute('stroke', regionConfig.glowHex);
     
-    // Stroke width: interpolate from 3px to 6px based on resonance
-    const strokeWidth = 3 + (resonance * 3);
+    // Stroke width: subtle, interpolate from 1.5px to 2.5px based on resonance
+    const strokeWidth = 1.5 + (resonance * 1);
     circle.setAttribute('stroke-width', strokeWidth);
     
-    // Stroke opacity based on resonance
-    const strokeOpacity = resonance * 0.8;
+    // Stroke opacity based on resonance - much more subtle
+    const strokeOpacity = resonance * 0.35;
     circle.setAttribute('stroke-opacity', strokeOpacity);
     
     // Partial ring using stroke-dasharray
@@ -129,8 +129,8 @@ export class ResonanceRings {
     // Opacity for overall visibility
     circle.setAttribute('opacity', 1);
     
-    // High resonance effect
-    if (resonance > 0.85) {
+    // High resonance effect - only very subtle glow at high resonance
+    if (resonance > 0.92) {
       circle.classList.add('resonance-high');
     } else {
       circle.classList.remove('resonance-high');
