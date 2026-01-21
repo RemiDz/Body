@@ -405,7 +405,7 @@ body {
   fill: none;
 }
 
-/* ===== RESONANCE RINGS ===== */
+/* ===== RESONANCE BLOOM ===== */
 #resonance-rings {
   position: absolute;
   top: 0;
@@ -416,25 +416,10 @@ body {
   z-index: 6;
 }
 
-.resonance-ring {
+.resonance-bloom {
   fill: none;
-  transition: opacity 300ms ease-out, stroke-width 200ms ease-out, stroke-dasharray 150ms ease-out;
-  animation: ring-rotate 8s linear infinite;
-  transform-origin: center;
-  transform-box: fill-box;
-}
-
-.resonance-ring.resonance-high {
-  filter: drop-shadow(0 0 3px currentColor);
-}
-
-@keyframes ring-rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  /* Smooth, gentle appearance */
+  stroke-linecap: round;
 }
 
 /* ===== PARTICLES ===== */

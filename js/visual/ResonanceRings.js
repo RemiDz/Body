@@ -1,13 +1,14 @@
 /**
- * Resonance Body Map - Resonance Rings
- * Circular rings showing resonance quality (how close to ideal center frequency)
+ * Resonance Body Map - Resonance Bloom
+ * Gentle expanding circles that bloom from chakra centers
+ * Creates a soft, symmetrical pulse effect like ripples or a flower opening
  */
 
 import { FREQUENCY_REGIONS } from '../config.js';
 
 export class ResonanceRings {
   /**
-   * Create resonance rings visualization
+   * Create resonance bloom visualization
    * @param {string} containerSelector - CSS selector for container element
    */
   constructor(containerSelector) {
@@ -23,15 +24,31 @@ export class ResonanceRings {
     // Cache for region center positions
     this.regionCenterCache = {};
     
-    // Ring configuration - subtle, non-distracting
-    this.ringRadius = 28;
-    this.circumference = 2 * Math.PI * this.ringRadius;
+    // Bloom configuration
+    this.config = {
+      maxRadius: 45,           // Maximum bloom radius
+      minRadius: 2,            // Starting radius (dot)
+      bloomDuration: 1800,     // How long each bloom takes to expand (ms)
+      spawnInterval: 600,      // Time between spawning new blooms (ms)
+      maxBlooms: 3,            // Max concurrent blooms per region
+      strokeWidth: 1.5,        // Line thickness
+      maxOpacity: 0.4          // Peak opacity
+    };
     
     // Create SVG element
     this.svg = this.createSVG();
     
-    // Track active rings
-    this.activeRings = {};
+    // Track active blooms per region
+    this.activeBlooms = {};
+    
+    // Track last spawn time per region
+    this.lastSpawnTime = {};
+    
+    // Initialize for all regions
+    for (const regionName of Object.keys(this.regions)) {
+      this.activeBlooms[regionName] = [];
+      this.lastSpawnTime[regionName] = 0;
+    }
   }
   
   /**
@@ -53,7 +70,7 @@ export class ResonanceRings {
   }
   
   /**
-   * Update resonance rings visualization
+   * Update resonance bloom visualization
    * @param {Object} resonanceValues - Resonance quality values per region (0-1)
    * @param {Object} intensities - Intensity values per region
    */
@@ -62,28 +79,41 @@ export class ResonanceRings {
       return;
     }
     
+    const now = performance.now();
+    
     // Process each region
     for (const regionName of Object.keys(this.regions)) {
       const intensity = intensities[regionName] || 0;
       const resonance = resonanceValues[regionName] || 0;
       
-      if (intensity <= 0.15) {
-        // Hide ring if intensity too low
-        this.hideRing(regionName);
-      } else {
-        // Show/update ring
-        this.renderRing(regionName, resonance, intensity);
+      if (intensity > 0.15 && resonance > 0.1) {
+        // Maybe spawn a new bloom
+        this.maybeSpawnBloom(regionName, resonance, intensity, now);
       }
+      
+      // Update existing blooms
+      this.updateBlooms(regionName, now);
     }
   }
   
   /**
-   * Render or update a resonance ring for a region
-   * @param {string} regionName - Name of the region
-   * @param {number} resonance - Resonance quality value (0-1)
-   * @param {number} intensity - Region intensity
+   * Maybe spawn a new bloom for a region
    */
-  renderRing(regionName, resonance, intensity) {
+  maybeSpawnBloom(regionName, resonance, intensity, now) {
+    const timeSinceLast = now - this.lastSpawnTime[regionName];
+    
+    // Spawn rate based on resonance (better resonance = faster spawning)
+    const spawnInterval = this.config.spawnInterval / (0.5 + resonance * 0.5);
+    
+    if (timeSinceLast < spawnInterval) {
+      return;
+    }
+    
+    // Limit concurrent blooms
+    if (this.activeBlooms[regionName].length >= this.config.maxBlooms) {
+      return;
+    }
+    
     const center = this.getRegionCenter(regionName);
     if (!center) {
       return;
@@ -91,50 +121,82 @@ export class ResonanceRings {
     
     const regionConfig = this.regions[regionName];
     
-    // Get or create circle element
-    let circle = this.activeRings[regionName];
-    if (!circle) {
-      circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('class', 'resonance-ring');
-      circle.setAttribute('data-region', regionName);
-      circle.setAttribute('fill', 'none');
-      this.svg.appendChild(circle);
-      this.activeRings[regionName] = circle;
-    }
-    
-    // Position
+    // Create bloom circle
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('class', 'resonance-bloom');
     circle.setAttribute('cx', center.x);
     circle.setAttribute('cy', center.y);
-    circle.setAttribute('r', this.ringRadius);
-    
-    // Stroke color
+    circle.setAttribute('r', this.config.minRadius);
+    circle.setAttribute('fill', 'none');
     circle.setAttribute('stroke', regionConfig.glowHex);
+    circle.setAttribute('stroke-width', this.config.strokeWidth);
+    circle.setAttribute('opacity', 0);
     
-    // Stroke width: subtle, interpolate from 1.5px to 2.5px based on resonance
-    const strokeWidth = 1.5 + (resonance * 1);
-    circle.setAttribute('stroke-width', strokeWidth);
+    this.svg.appendChild(circle);
     
-    // Stroke opacity based on resonance - much more subtle
-    const strokeOpacity = resonance * 0.35;
-    circle.setAttribute('stroke-opacity', strokeOpacity);
+    // Track bloom state
+    this.activeBlooms[regionName].push({
+      element: circle,
+      startTime: now,
+      resonance: resonance,
+      intensity: intensity
+    });
     
-    // Partial ring using stroke-dasharray
-    const arcLength = this.circumference * resonance;
-    circle.setAttribute('stroke-dasharray', `${arcLength} ${this.circumference}`);
+    this.lastSpawnTime[regionName] = now;
+  }
+  
+  /**
+   * Update all blooms for a region
+   */
+  updateBlooms(regionName, now) {
+    const blooms = this.activeBlooms[regionName];
     
-    // Start from top of circle
-    const dashOffset = this.circumference * 0.25;
-    circle.setAttribute('stroke-dashoffset', dashOffset);
-    
-    // Opacity for overall visibility
-    circle.setAttribute('opacity', 1);
-    
-    // High resonance effect - only very subtle glow at high resonance
-    if (resonance > 0.92) {
-      circle.classList.add('resonance-high');
-    } else {
-      circle.classList.remove('resonance-high');
+    for (let i = blooms.length - 1; i >= 0; i--) {
+      const bloom = blooms[i];
+      const elapsed = now - bloom.startTime;
+      const progress = elapsed / this.config.bloomDuration;
+      
+      if (progress >= 1) {
+        // Bloom complete - remove it
+        if (bloom.element.parentNode) {
+          bloom.element.parentNode.removeChild(bloom.element);
+        }
+        blooms.splice(i, 1);
+        continue;
+      }
+      
+      // Calculate current radius - eased expansion
+      const easedProgress = this.easeOutQuad(progress);
+      const radius = this.config.minRadius + 
+        (this.config.maxRadius - this.config.minRadius) * easedProgress;
+      
+      // Calculate opacity - fade in then fade out
+      // Peak at 30% progress, then fade out
+      let opacity;
+      if (progress < 0.3) {
+        // Fade in
+        opacity = (progress / 0.3) * this.config.maxOpacity * bloom.resonance;
+      } else {
+        // Fade out
+        const fadeProgress = (progress - 0.3) / 0.7;
+        opacity = this.config.maxOpacity * bloom.resonance * (1 - fadeProgress);
+      }
+      
+      // Apply to element
+      bloom.element.setAttribute('r', radius);
+      bloom.element.setAttribute('opacity', Math.max(0, opacity));
+      
+      // Subtle stroke width change - thinner as it expands
+      const strokeWidth = this.config.strokeWidth * (1 - easedProgress * 0.5);
+      bloom.element.setAttribute('stroke-width', Math.max(0.5, strokeWidth));
     }
+  }
+  
+  /**
+   * Easing function - smooth deceleration
+   */
+  easeOutQuad(t) {
+    return 1 - (1 - t) * (1 - t);
   }
   
   /**
@@ -180,31 +242,16 @@ export class ResonanceRings {
   }
   
   /**
-   * Hide a specific ring
-   * @param {string} regionName - Name of the region
-   */
-  hideRing(regionName) {
-    const circle = this.activeRings[regionName];
-    if (circle) {
-      // Fade out with CSS transition
-      circle.setAttribute('opacity', 0);
-      
-      // Remove from DOM after transition
-      setTimeout(() => {
-        if (circle.parentNode && circle.getAttribute('opacity') === '0') {
-          circle.parentNode.removeChild(circle);
-          delete this.activeRings[regionName];
-        }
-      }, 300);
-    }
-  }
-  
-  /**
-   * Clear all rings
+   * Clear all blooms
    */
   clear() {
-    for (const regionName of Object.keys(this.activeRings)) {
-      this.hideRing(regionName);
+    for (const regionName of Object.keys(this.activeBlooms)) {
+      for (const bloom of this.activeBlooms[regionName]) {
+        if (bloom.element.parentNode) {
+          bloom.element.parentNode.removeChild(bloom.element);
+        }
+      }
+      this.activeBlooms[regionName] = [];
     }
   }
   
@@ -225,7 +272,7 @@ export class ResonanceRings {
       this.svg.parentNode.removeChild(this.svg);
     }
     
-    this.activeRings = {};
+    this.activeBlooms = {};
     this.regionCenterCache = {};
   }
 }
