@@ -262,8 +262,8 @@ export class Calibration {
       this.peakLevel = levelDb;
     }
     
-    // Slowly decay peak
-    this.peakLevel *= 0.999;
+    // Slowly decay peak toward silence (subtract since dB values are negative)
+    this.peakLevel -= 0.05;
     
     // Process calibration sample if calibrating
     if (this.isCalibrating) {

@@ -264,6 +264,15 @@ class ResonanceApp {
     this.particleSystem?.clear();
     this.noiseGate?.reset();
     
+    // Clear overlay visualizations (these would freeze on screen otherwise)
+    this.harmonicCascade?.update(null, 0, 0);
+    this.harmonicCascade?.render();
+    this.cymaticsOverlay?.update(0, 0, null, 0);
+    this.cymaticsOverlay?.render();
+    this.harmonicLines?.clear();
+    this.resonanceRings?.clear();
+    this.spectrumArc?.clear();
+    
     // Start idle animation
     this.bodyRenderer?.startIdleAnimation();
     

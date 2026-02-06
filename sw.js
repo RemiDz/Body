@@ -3,7 +3,7 @@
  * Offline caching that works on GitHub Pages (repo sub-path) and any hosted scope.
  */
 
-const CACHE_NAME = 'resonance-v1.0.1';
+const CACHE_NAME = 'resonance-v1.0.2';
 
 // Build fully-qualified URLs relative to the SW registration scope.
 const toScopeUrl = (path) => new URL(path, self.registration.scope).toString();
@@ -24,6 +24,11 @@ const ASSETS = [
   'js/visual/GlowEngine.js',
   'js/visual/ParticleSystem.js',
   'js/visual/AmbientEffects.js',
+  'js/visual/HarmonicCascade.js',
+  'js/visual/CymaticsOverlay.js',
+  'js/visual/HarmonicLines.js',
+  'js/visual/ResonanceRings.js',
+  'js/visual/SpectrumArc.js',
   'js/ui/FrequencyDisplay.js',
   'js/ui/Controls.js',
   'js/ui/Calibration.js',
