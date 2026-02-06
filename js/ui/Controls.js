@@ -606,6 +606,28 @@ export class Controls {
     if (particlesToggle && settings.particlesEnabled !== undefined) {
       particlesToggle.checked = settings.particlesEnabled;
     }
+    
+    // Harmonic Cascade
+    const cascadeToggle = document.getElementById('cascade-toggle');
+    if (cascadeToggle && settings.cascadeEnabled !== undefined) {
+      cascadeToggle.checked = settings.cascadeEnabled;
+    }
+    
+    // Cymatics Pattern
+    const cymaticsToggle = document.getElementById('cymatics-toggle');
+    if (cymaticsToggle && settings.cymaticsEnabled !== undefined) {
+      cymaticsToggle.checked = settings.cymaticsEnabled;
+    }
+    
+    // Cymatics Position
+    if (settings.cymaticsPosition !== undefined) {
+      const centerBtn = document.getElementById('cymatics-center');
+      const regionBtn = document.getElementById('cymatics-region');
+      if (centerBtn && regionBtn) {
+        centerBtn.classList.toggle('active', settings.cymaticsPosition === 'center');
+        regionBtn.classList.toggle('active', settings.cymaticsPosition === 'region');
+      }
+    }
   }
   
   /**

@@ -15,7 +15,8 @@ export class NoiseGate {
     
     // State
     this.isOpen = false;
-    this.lastOpenTime = 0;
+    this.gateOpenedTime = 0;        // When the gate first opened (for hold time)
+    this.lastAboveThresholdTime = 0; // Last time signal was above close threshold
     this.lastCloseTime = 0;
     
     // Smoothing
@@ -72,26 +73,27 @@ export class NoiseGate {
         // Apply attack time
         if (timeSinceClose >= this.attackTime) {
           this.isOpen = true;
-          this.lastOpenTime = now;
+          this.gateOpenedTime = now;
+          this.lastAboveThresholdTime = now;
         }
       }
     } else {
       // Check if we should close the gate
       if (smoothedLevel < closeThreshold) {
-        const timeSinceOpen = now - this.lastOpenTime;
+        const timeSinceOpen = now - this.gateOpenedTime;
         
-        // Apply hold time before checking release
+        // Apply hold time before checking release (prevents closing during brief dips)
         if (timeSinceOpen >= this.holdTime) {
-          // Apply release time
-          const timeBelowThreshold = now - this.lastOpenTime;
+          // Apply release time (measured from when signal last dropped below threshold)
+          const timeBelowThreshold = now - this.lastAboveThresholdTime;
           if (timeBelowThreshold >= this.releaseTime) {
             this.isOpen = false;
             this.lastCloseTime = now;
           }
         }
       } else {
-        // Reset release timer while above threshold
-        this.lastOpenTime = now;
+        // Signal is above close threshold — track for release timing
+        this.lastAboveThresholdTime = now;
       }
     }
     
@@ -242,7 +244,8 @@ export class NoiseGate {
    */
   reset() {
     this.isOpen = false;
-    this.lastOpenTime = 0;
+    this.gateOpenedTime = 0;
+    this.lastAboveThresholdTime = 0;
     this.lastCloseTime = 0;
     this.levelSmoother.reset();
     this.peakDetector.reset();

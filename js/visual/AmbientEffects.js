@@ -178,16 +178,24 @@ export class AmbientEffects {
     
     this.container.appendChild(ripple);
     
-    // Animate
-    ripple.animate([
+    // Animate with safety timeout in case animation is interrupted (e.g., tab hidden)
+    const animation = ripple.animate([
       { transform: 'translate(-50%, -50%) scale(1)', opacity: 0.5 },
       { transform: 'translate(-50%, -50%) scale(20)', opacity: 0 }
     ], {
       duration: 1500,
       easing: 'ease-out'
-    }).onfinish = () => {
-      ripple.remove();
+    });
+    
+    const removeRipple = () => {
+      if (ripple.parentNode) ripple.remove();
     };
+    
+    animation.onfinish = removeRipple;
+    animation.oncancel = removeRipple;
+    
+    // Safety fallback: remove even if animation callbacks don't fire
+    setTimeout(removeRipple, 2000);
   }
   
   /**

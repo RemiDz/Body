@@ -104,6 +104,21 @@ export class AudioAnalyzer {
       
       console.log('Got media stream:', this.stream.active);
       
+      // Monitor for stream ending (iOS can kill tracks after prolonged background)
+      const audioTrack = this.stream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.addEventListener('ended', () => {
+          console.warn('Audio track ended unexpectedly (iOS background kill?)');
+          this.isActive = false;
+          if (this.onError) {
+            this.onError(new Error('Microphone was disconnected. Please tap "Begin Listening" to restart.'));
+          }
+          if (this.onStateChange) {
+            this.onStateChange('ended');
+          }
+        });
+      }
+      
       // Create source from microphone stream
       this.source = this.audioContext.createMediaStreamSource(this.stream);
       

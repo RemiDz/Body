@@ -19,6 +19,9 @@ export class Calibration {
     this.noiseFloor = this.config.noiseFloor || -55;
     this.glowIntensity = 1.0;
     this.particlesEnabled = true;
+    this.cascadeEnabled = true;
+    this.cymaticsEnabled = true;
+    this.cymaticsPosition = 'center';
     
     // Calibration state
     this.isCalibrating = false;
@@ -208,6 +211,30 @@ export class Calibration {
   }
   
   /**
+   * Set cascade enabled
+   */
+  setCascadeEnabled(enabled) {
+    this.cascadeEnabled = enabled;
+    this.emitChange();
+  }
+  
+  /**
+   * Set cymatics enabled
+   */
+  setCymaticsEnabled(enabled) {
+    this.cymaticsEnabled = enabled;
+    this.emitChange();
+  }
+  
+  /**
+   * Set cymatics position mode
+   */
+  setCymaticsPosition(mode) {
+    this.cymaticsPosition = mode;
+    this.emitChange();
+  }
+  
+  /**
    * Apply settings from object
    */
   applySettings(settings) {
@@ -227,6 +254,18 @@ export class Calibration {
       this.particlesEnabled = settings.particlesEnabled;
     }
     
+    if (settings.cascadeEnabled !== undefined) {
+      this.cascadeEnabled = settings.cascadeEnabled;
+    }
+    
+    if (settings.cymaticsEnabled !== undefined) {
+      this.cymaticsEnabled = settings.cymaticsEnabled;
+    }
+    
+    if (settings.cymaticsPosition !== undefined) {
+      this.cymaticsPosition = settings.cymaticsPosition;
+    }
+    
     this.emitChange();
   }
   
@@ -238,7 +277,10 @@ export class Calibration {
       gain: this.gain,
       noiseFloor: this.noiseFloor,
       glowIntensity: this.glowIntensity,
-      particlesEnabled: this.particlesEnabled
+      particlesEnabled: this.particlesEnabled,
+      cascadeEnabled: this.cascadeEnabled,
+      cymaticsEnabled: this.cymaticsEnabled,
+      cymaticsPosition: this.cymaticsPosition
     };
   }
   
@@ -345,6 +387,9 @@ export class Calibration {
     this.noiseFloor = this.config.noiseFloor || -55;
     this.glowIntensity = 1.0;
     this.particlesEnabled = true;
+    this.cascadeEnabled = true;
+    this.cymaticsEnabled = true;
+    this.cymaticsPosition = 'center';
     this.emitChange();
     this.saveSettings();
   }

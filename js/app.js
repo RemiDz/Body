@@ -194,6 +194,17 @@ class ResonanceApp {
         initError = error;
       };
       
+      this.audioAnalyzer.onStateChange = (state) => {
+        if (state === 'ended' && this.isRunning) {
+          // Mic track was killed (e.g., iOS background) — stop gracefully
+          console.warn('Audio stream ended, stopping visualization');
+          this.stop();
+          this.controls?.onMicrophoneError(
+            new Error('Microphone was disconnected. Tap "Begin Listening" to restart.')
+          );
+        }
+      };
+      
       const success = await this.audioAnalyzer.init();
       
       if (!success) {
@@ -465,16 +476,19 @@ class ResonanceApp {
     
     // Harmonic Cascade toggle
     if (changes.cascadeEnabled !== undefined) {
+      this.calibration?.setCascadeEnabled(changes.cascadeEnabled);
       this.harmonicCascade?.setEnabled(changes.cascadeEnabled);
     }
     
     // Cymatics Pattern toggle
     if (changes.cymaticsEnabled !== undefined) {
+      this.calibration?.setCymaticsEnabled(changes.cymaticsEnabled);
       this.cymaticsOverlay?.setEnabled(changes.cymaticsEnabled);
     }
     
     // Cymatics Position mode
     if (changes.cymaticsPosition !== undefined) {
+      this.calibration?.setCymaticsPosition(changes.cymaticsPosition);
       this.cymaticsOverlay?.setPositionMode(changes.cymaticsPosition);
     }
     
@@ -508,6 +522,20 @@ class ResonanceApp {
     // Particles
     if (settings.particlesEnabled !== undefined) {
       this.particleSystem?.setEnabled(settings.particlesEnabled);
+    }
+    
+    // Harmonic Cascade
+    if (settings.cascadeEnabled !== undefined) {
+      this.harmonicCascade?.setEnabled(settings.cascadeEnabled);
+    }
+    
+    // Cymatics
+    if (settings.cymaticsEnabled !== undefined) {
+      this.cymaticsOverlay?.setEnabled(settings.cymaticsEnabled);
+    }
+    
+    if (settings.cymaticsPosition !== undefined) {
+      this.cymaticsOverlay?.setPositionMode(settings.cymaticsPosition);
     }
   }
   
