@@ -1750,3 +1750,69 @@ body {
   flex: 0 0 auto;
   min-width: 50px;
 }
+
+
+/* ===== INSTRUMENT GUIDE ===== */
+.instrument-guide-overlay {
+  z-index: calc(var(--z-overlay) + 1);
+}
+
+.instrument-guide-content {
+  max-width: 460px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  text-align: left;
+}
+
+.guide-region-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--space-lg);
+}
+
+.guide-region-chip {
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border: 1px solid;
+  border-radius: var(--radius-pill);
+  opacity: 0.8;
+}
+
+.guide-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.guide-row {
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.guide-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--text-bright);
+  margin-bottom: 2px;
+}
+
+.guide-freq {
+  font-size: var(--font-small);
+  color: var(--text-mid);
+}
+
+.guide-regions {
+  font-size: var(--font-small);
+  color: var(--status-listening);
+  opacity: 0.8;
+  margin: 2px 0;
+}
+
+.guide-desc {
+  font-size: var(--font-small);
+  color: var(--text-dim);
+  line-height: 1.4;
+}

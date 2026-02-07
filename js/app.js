@@ -25,6 +25,7 @@ import { SessionRecorder } from './ui/SessionRecorder.js';
 import { SessionSummary } from './ui/SessionSummary.js';
 import { Screenshot } from './ui/Screenshot.js';
 import { FrequencyReference } from './ui/FrequencyReference.js';
+import { InstrumentGuide } from './ui/InstrumentGuide.js';
 
 class ResonanceApp {
   constructor() {
@@ -56,6 +57,7 @@ class ResonanceApp {
     this.sessionRecorder = null;
     this.sessionSummary = null;
     this.frequencyReference = null;
+    this.instrumentGuide = null;
     
     // State
     this.isRunning = false;
@@ -128,6 +130,13 @@ class ResonanceApp {
     
     // Frequency reference & tuner
     this.frequencyReference = new FrequencyReference();
+    
+    // Instrument guide
+    this.instrumentGuide = new InstrumentGuide();
+    const instrumentGuideBtn = document.getElementById('instrumentGuideBtn');
+    if (instrumentGuideBtn) {
+      instrumentGuideBtn.addEventListener('click', () => this.instrumentGuide.toggle());
+    }
     
     // Screenshot button
     const screenshotBtn = document.getElementById('screenshotBtn');
@@ -764,6 +773,7 @@ class ResonanceApp {
     this.controls?.destroy();
     this.sessionTimer?.destroy();
     this.frequencyReference?.destroy();
+    this.instrumentGuide?.destroy();
     this.sessionSummary?.remove();
     
     this.audioAnalyzer = null;
@@ -786,6 +796,7 @@ class ResonanceApp {
     this.sessionRecorder = null;
     this.sessionSummary = null;
     this.frequencyReference = null;
+    this.instrumentGuide = null;
     
     this.isInitialized = false;
     console.log('App destroyed');
