@@ -115,6 +115,9 @@ class ResonanceApp {
     this.controls.onStop = () => this.stop();
     this.controls.onSettingsChange = (changes) => this.handleSettingsChange(changes);
     
+    // Record button
+    this.controls.onRecord = () => this.toggleRecording();
+    
     // Frequency display
     this.frequencyDisplay = new FrequencyDisplay();
     
@@ -230,6 +233,27 @@ class ResonanceApp {
   }
   
   /**
+   * Toggle session recording on/off
+   */
+  toggleRecording() {
+    if (!this.isRunning) return;
+    
+    if (this.sessionRecorder?.isRecording) {
+      // Stop recording and show summary
+      this.sessionRecorder.stop();
+      this.controls?.setRecordingState(false);
+      const summary = this.sessionRecorder.getSummary();
+      if (summary.totalDurationMs > 5000) {
+        this.sessionSummary?.show(summary);
+      }
+    } else {
+      // Start recording
+      this.sessionRecorder?.start();
+      this.controls?.setRecordingState(true);
+    }
+  }
+  
+  /**
    * Start audio analysis and visualization
    */
   async start() {
@@ -297,9 +321,6 @@ class ResonanceApp {
       // Start session timer
       this.sessionTimer?.start();
       
-      // Start session recorder
-      this.sessionRecorder?.start();
-      
       this.animate();
       
       console.log('Audio visualization started');
@@ -330,6 +351,7 @@ class ResonanceApp {
     // Stop session recorder and show summary
     if (this.sessionRecorder?.isRecording) {
       this.sessionRecorder.stop();
+      this.controls?.setRecordingState(false);
       const summary = this.sessionRecorder.getSummary();
       // Only show summary if session was longer than 5 seconds
       if (summary.totalDurationMs > 5000) {
@@ -574,7 +596,6 @@ class ResonanceApp {
       this.bodyRenderer?.stopIdleAnimation();
       this.wakeLock?.acquire();
       this.sessionTimer?.start();
-      this.sessionRecorder?.start();
       
       // Start playback
       audioElement.play();

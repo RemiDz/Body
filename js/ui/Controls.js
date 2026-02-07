@@ -24,6 +24,7 @@ export class Controls {
     this.retryBtn = document.getElementById('retryBtn');
     this.closeSettingsBtn = document.getElementById('closeSettingsBtn');
     this.fullscreenBtn = document.getElementById('fullscreenBtn');
+    this.recordBtn = document.getElementById('recordBtn');
     this.appContainer = document.getElementById('app');
     
     // Fullscreen state
@@ -32,6 +33,7 @@ export class Controls {
     // Callbacks
     this.onStart = null;
     this.onStop = null;
+    this.onRecord = null;
     this.onSettingsChange = null;
     
     // Bind event handlers
@@ -78,6 +80,11 @@ export class Controls {
     
     // Settings button
     this.addTapHandler(this.settingsBtn, () => this.showSettings());
+    
+    // Record button
+    this.addTapHandler(this.recordBtn, () => {
+      if (this.onRecord) this.onRecord();
+    });
     
     // Close settings
     this.addTapHandler(this.closeSettingsBtn, () => this.hideSettings());
@@ -373,6 +380,9 @@ export class Controls {
   
   handleStop() {
     this.setState(this.states.IDLE);
+    // Hide record button when not listening
+    this.recordBtn?.classList.add('hidden');
+    this.setRecordingState(false);
     if (this.onStop) this.onStop();
   }
   
@@ -422,6 +432,18 @@ export class Controls {
   onMicrophoneGranted() {
     this.setState(this.states.LISTENING);
     this.hideWelcome();
+    // Show record button when listening
+    this.recordBtn?.classList.remove('hidden');
+  }
+  
+  /**
+   * Set the recording button state (active/inactive)
+   */
+  setRecordingState(isRecording) {
+    if (this.recordBtn) {
+      this.recordBtn.classList.toggle('recording', isRecording);
+      this.recordBtn.setAttribute('aria-label', isRecording ? 'Stop recording' : 'Record session');
+    }
   }
   
   onMicrophoneError(error) {
@@ -525,6 +547,7 @@ export class Controls {
   destroy() {
     this.onStart = null;
     this.onStop = null;
+    this.onRecord = null;
     this.onSettingsChange = null;
   }
 }
