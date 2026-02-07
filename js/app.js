@@ -26,6 +26,7 @@ import { SessionSummary } from './ui/SessionSummary.js';
 import { Screenshot } from './ui/Screenshot.js';
 import { FrequencyReference } from './ui/FrequencyReference.js';
 import { InstrumentGuide } from './ui/InstrumentGuide.js';
+import { AudioFileInput } from './ui/AudioFileInput.js';
 
 class ResonanceApp {
   constructor() {
@@ -58,6 +59,7 @@ class ResonanceApp {
     this.sessionSummary = null;
     this.frequencyReference = null;
     this.instrumentGuide = null;
+    this.audioFileInput = null;
     
     // State
     this.isRunning = false;
@@ -136,6 +138,14 @@ class ResonanceApp {
     const instrumentGuideBtn = document.getElementById('instrumentGuideBtn');
     if (instrumentGuideBtn) {
       instrumentGuideBtn.addEventListener('click', () => this.instrumentGuide.toggle());
+    }
+    
+    // Audio file input
+    this.audioFileInput = new AudioFileInput();
+    this.audioFileInput.onFileReady = (audioEl, fileName) => this.startFilePlayback(audioEl, fileName);
+    const audioFileBtn = document.getElementById('audioFileBtn');
+    if (audioFileBtn) {
+      audioFileBtn.addEventListener('click', () => this.audioFileInput.open());
     }
     
     // Screenshot button
@@ -523,6 +533,57 @@ class ResonanceApp {
   }
   
   /**
+   * Start visualization from an audio file
+   */
+  async startFilePlayback(audioElement, fileName) {
+    // Stop any current session
+    if (this.isRunning) {
+      this.stop();
+    }
+    
+    try {
+      this.audioAnalyzer = new AudioAnalyzer();
+      const success = await this.audioAnalyzer.initFromAudioElement(audioElement);
+      if (!success) {
+        throw new Error('Failed to initialize audio from file');
+      }
+      
+      this.frequencyMapper = new FrequencyMapper();
+      this.noiseGate = new NoiseGate({
+        threshold: this.calibration?.noiseFloor || -55
+      });
+      
+      this.applySettings(this.calibration?.getSettings() || {});
+      this.controls?.onMicrophoneGranted();
+      
+      this.isRunning = true;
+      this.lastFrameTime = performance.now();
+      this.silenceStartTime = 0;
+      this.isIdle = false;
+      
+      this.bodyRenderer?.stopIdleAnimation();
+      this.wakeLock?.acquire();
+      this.sessionTimer?.start();
+      this.sessionRecorder?.start();
+      
+      // Start playback
+      audioElement.play();
+      
+      // Stop when audio ends
+      audioElement.addEventListener('ended', () => {
+        this.stop();
+      }, { once: true });
+      
+      this.animate();
+      console.log('File playback started:', fileName);
+      
+    } catch (error) {
+      console.error('File playback error:', error);
+      this.controls?.onMicrophoneError(error);
+    }
+  }
+  
+  /**
    * Apply a color theme preset
    */
   applyColorTheme(theme) {
@@ -774,6 +835,7 @@ class ResonanceApp {
     this.sessionTimer?.destroy();
     this.frequencyReference?.destroy();
     this.instrumentGuide?.destroy();
+    this.audioFileInput?.destroy();
     this.sessionSummary?.remove();
     
     this.audioAnalyzer = null;
@@ -797,6 +859,7 @@ class ResonanceApp {
     this.sessionSummary = null;
     this.frequencyReference = null;
     this.instrumentGuide = null;
+    this.audioFileInput = null;
     
     this.isInitialized = false;
     console.log('App destroyed');

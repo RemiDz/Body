@@ -140,7 +140,7 @@ export class FrequencyDisplay {
   }
   
   /**
-   * Update the musical note display
+   * Update the musical note display with interval relationship
    * @param {number} frequency - Frequency in Hz
    */
   updateNote(frequency) {
@@ -150,12 +150,43 @@ export class FrequencyDisplay {
       this.currentNote = note;
       
       if (this.noteElement) {
-        this.noteElement.textContent = note;
+        // Calculate interval from root (C2 = 65.4 Hz)
+        const interval = this.getIntervalName(frequency);
+        const display = interval ? `${note}  ${interval}` : note;
+        this.noteElement.textContent = display;
         this.noteElement.classList.add('visible');
       }
     } else if (!note && this.noteElement) {
       this.noteElement.classList.remove('visible');
     }
+  }
+  
+  /**
+   * Get musical interval name relative to root (C2)
+   */
+  getIntervalName(frequency) {
+    const rootFreq = 65.41; // C2
+    if (frequency <= 0) return '';
+    
+    // Calculate semitones from root
+    const semitones = Math.round(12 * Math.log2(frequency / rootFreq)) % 12;
+    
+    const intervals = {
+      0: 'Unison',
+      1: 'Minor 2nd',
+      2: 'Major 2nd',
+      3: 'Minor 3rd',
+      4: 'Major 3rd',
+      5: 'Perfect 4th',
+      6: 'Tritone',
+      7: 'Perfect 5th',
+      8: 'Minor 6th',
+      9: 'Major 6th',
+      10: 'Minor 7th',
+      11: 'Major 7th'
+    };
+    
+    return intervals[((semitones % 12) + 12) % 12] || '';
   }
   
   /**

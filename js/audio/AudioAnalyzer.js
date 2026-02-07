@@ -187,6 +187,59 @@ export class AudioAnalyzer {
   }
   
   /**
+   * Initialize from an audio element (for file playback visualization)
+   */
+  async initFromAudioElement(audioElement) {
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!this.audioContext) {
+        this.audioContext = new AudioContextClass();
+      }
+      
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+      
+      // Disconnect previous source if any
+      if (this.source) {
+        this.source.disconnect();
+      }
+      
+      this.source = this.audioContext.createMediaElementSource(audioElement);
+      
+      if (!this.gainNode) {
+        this.gainNode = this.audioContext.createGain();
+        this.gainNode.gain.value = 1.0;
+      }
+      
+      if (!this.analyser) {
+        this.analyser = this.audioContext.createAnalyser();
+        this.analyser.fftSize = this.config.fftSize;
+        this.analyser.smoothingTimeConstant = this.config.smoothingTimeConstant;
+        this.analyser.minDecibels = this.config.minDecibels;
+        this.analyser.maxDecibels = this.config.maxDecibels;
+      }
+      
+      // Connect: source → gain → analyser, and also source → destination (speakers)
+      this.source.connect(this.gainNode);
+      this.gainNode.connect(this.analyser);
+      this.source.connect(this.audioContext.destination);
+      
+      this.frequencyData = new Float32Array(this.analyser.frequencyBinCount);
+      this.timeData = new Float32Array(this.analyser.fftSize);
+      
+      this.isInitialized = true;
+      this.isActive = true;
+      
+      return true;
+    } catch (error) {
+      console.error('Audio file init error:', error);
+      if (this.onError) this.onError(error);
+      return false;
+    }
+  }
+  
+  /**
    * Resume audio context (required after user gesture on iOS)
    */
   async resume() {
