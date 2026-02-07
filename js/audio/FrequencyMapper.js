@@ -144,8 +144,8 @@ export class FrequencyMapper {
     // Track resonance value
     this.resonanceValues[primary] = Math.max(this.resonanceValues[primary], resonance);
     
-    // Calculate boundary blend weights
-    const blend = width * 0.15;
+    // Fixed-Hz boundary blend zone (perceptually consistent across regions)
+    const blend = 20; // Hz
     let wPrimary = 1;
     
     const { prev, next } = this.getNeighborRegions(primary);
@@ -189,7 +189,7 @@ export class FrequencyMapper {
     // Only process harmonics for strong enough signals
     if (amplitude < 0.3) return;
     
-    // Only process harmonics upward (removed 0.5 subharmonic - rarely exists in real audio)
+    // Only process harmonics upward
     const harmonicRatios = [2, 3, 4, 5, 6];
     
     for (const ratio of harmonicRatios) {
@@ -198,8 +198,8 @@ export class FrequencyMapper {
       // Find region for related frequency
       for (const [regionName, config] of Object.entries(this.regions)) {
         if (relatedFreq >= config.min && relatedFreq < config.max) {
-          // Harmonics are weaker than fundamentals
-          const harmonicStrength = amplitude * (0.3 / ratio);
+          // sqrt falloff better matches real instrument overtone strength
+          const harmonicStrength = amplitude * (0.4 / Math.sqrt(ratio));
           
           if (harmonicStrength > 0.1) {
             this.targetIntensities[regionName] = Math.max(

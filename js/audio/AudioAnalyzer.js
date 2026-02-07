@@ -541,8 +541,8 @@ export class AudioAnalyzer {
     // Sort by amplitude (strongest first)
     peaks.sort((a, b) => b.amplitude - a.amplitude);
     
-    // Return top peaks (12 for better harmonic analysis)
-    return peaks.slice(0, 12);
+    // Return top peaks (24 for better HPS and harmonic analysis)
+    return peaks.slice(0, 24);
   }
   
   /**

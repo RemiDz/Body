@@ -8,7 +8,7 @@ import { MovingAverage, PeakDetector, clamp } from '../utils/math.js';
 export class NoiseGate {
   constructor(options = {}) {
     this.threshold = options.threshold || -55; // dB
-    this.hysteresis = options.hysteresis || 3; // dB
+    this.hysteresis = options.hysteresis || 5; // dB — wider to prevent chatter in reverberant rooms
     this.attackTime = options.attackTime || 10; // ms
     this.releaseTime = options.releaseTime || 100; // ms
     this.holdTime = options.holdTime || 50; // ms

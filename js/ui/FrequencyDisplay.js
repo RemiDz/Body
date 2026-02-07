@@ -34,7 +34,7 @@ export class FrequencyDisplay {
     this.isVisible = false;
     
     // Smoothing
-    this.frequencySmoother = new MovingAverage(5);
+    this.frequencySmoother = new MovingAverage(3);
     
     // Animation
     this.animationFrame = null;

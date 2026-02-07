@@ -49,25 +49,10 @@ export class GlowEngine {
       const state = this.glowStates[regionName];
       if (!state) continue;
       
-      // Set target
-      this.targetStates[regionName].intensity = targetIntensity;
-      
-      // Smooth interpolation towards target
-      const target = this.targetStates[regionName].intensity;
-      const current = state.intensity;
-      
-      if (target > current) {
-        // Attack - fast rise
-        const attackSpeed = 1000 / this.config.attackTime;
-        state.intensity = lerp(current, target, clamp(attackSpeed * dt, 0, 1));
-      } else {
-        // Decay - slower fall
-        const decaySpeed = 1000 / this.config.decayTime;
-        state.intensity = lerp(current, target, clamp(decaySpeed * dt, 0, 1));
-      }
-      
-      // Clamp final value
-      state.intensity = clamp(state.intensity, 0, 1);
+      // Pass through intensity directly — FrequencyMapper already handles
+      // attack/decay smoothing. Adding a second smoothing layer here caused
+      // visuals to lag ~2× behind the audio.
+      state.intensity = clamp(targetIntensity, 0, 1);
       
       // Update pulse phase for subtle animation
       if (state.intensity > 0.1) {

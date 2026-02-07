@@ -233,6 +233,22 @@ export class Controls {
         this.emitSettingsChange({ cymaticsPosition: 'region' });
       });
     }
+    
+    // Tuner Mode toggle
+    const tunerToggle = document.getElementById('tunerToggle');
+    if (tunerToggle) {
+      this.setupToggle(tunerToggle, (checked) => {
+        this.emitSettingsChange({ tunerEnabled: checked });
+      });
+    }
+    
+    // Frequency Reference toggle
+    const freqRefToggle = document.getElementById('freqRefToggle');
+    if (freqRefToggle) {
+      this.setupToggle(freqRefToggle, (checked) => {
+        this.emitSettingsChange({ freqRefEnabled: checked });
+      });
+    }
   }
   
   /**
@@ -696,6 +712,18 @@ export class Controls {
         centerBtn.classList.toggle('active', settings.cymaticsPosition === 'center');
         regionBtn.classList.toggle('active', settings.cymaticsPosition === 'region');
       }
+    }
+    
+    // Tuner Mode
+    const tunerToggle = document.getElementById('tunerToggle');
+    if (tunerToggle && settings.tunerEnabled !== undefined) {
+      tunerToggle.checked = settings.tunerEnabled;
+    }
+    
+    // Frequency Reference
+    const freqRefToggle = document.getElementById('freqRefToggle');
+    if (freqRefToggle && settings.freqRefEnabled !== undefined) {
+      freqRefToggle.checked = settings.freqRefEnabled;
     }
   }
   

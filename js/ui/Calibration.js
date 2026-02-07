@@ -22,6 +22,8 @@ export class Calibration {
     this.cascadeEnabled = true;
     this.cymaticsEnabled = true;
     this.cymaticsPosition = 'center';
+    this.tunerEnabled = false;
+    this.freqRefEnabled = false;
     
     // Calibration state
     this.isCalibrating = false;
@@ -235,6 +237,22 @@ export class Calibration {
   }
   
   /**
+   * Set tuner enabled
+   */
+  setTunerEnabled(enabled) {
+    this.tunerEnabled = enabled;
+    this.emitChange();
+  }
+  
+  /**
+   * Set frequency reference enabled
+   */
+  setFreqRefEnabled(enabled) {
+    this.freqRefEnabled = enabled;
+    this.emitChange();
+  }
+  
+  /**
    * Apply settings from object
    */
   applySettings(settings) {
@@ -266,6 +284,14 @@ export class Calibration {
       this.cymaticsPosition = settings.cymaticsPosition;
     }
     
+    if (settings.tunerEnabled !== undefined) {
+      this.tunerEnabled = settings.tunerEnabled;
+    }
+    
+    if (settings.freqRefEnabled !== undefined) {
+      this.freqRefEnabled = settings.freqRefEnabled;
+    }
+    
     this.emitChange();
   }
   
@@ -280,7 +306,9 @@ export class Calibration {
       particlesEnabled: this.particlesEnabled,
       cascadeEnabled: this.cascadeEnabled,
       cymaticsEnabled: this.cymaticsEnabled,
-      cymaticsPosition: this.cymaticsPosition
+      cymaticsPosition: this.cymaticsPosition,
+      tunerEnabled: this.tunerEnabled,
+      freqRefEnabled: this.freqRefEnabled
     };
   }
   
@@ -390,6 +418,8 @@ export class Calibration {
     this.cascadeEnabled = true;
     this.cymaticsEnabled = true;
     this.cymaticsPosition = 'center';
+    this.tunerEnabled = false;
+    this.freqRefEnabled = false;
     this.emitChange();
     this.saveSettings();
   }

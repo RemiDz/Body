@@ -19,6 +19,12 @@ import { SpectrumArc } from './visual/SpectrumArc.js';
 import { FrequencyDisplay } from './ui/FrequencyDisplay.js';
 import { Controls } from './ui/Controls.js';
 import { Calibration } from './ui/Calibration.js';
+import { WakeLock } from './ui/WakeLock.js';
+import { SessionTimer } from './ui/SessionTimer.js';
+import { SessionRecorder } from './ui/SessionRecorder.js';
+import { SessionSummary } from './ui/SessionSummary.js';
+import { Screenshot } from './ui/Screenshot.js';
+import { FrequencyReference } from './ui/FrequencyReference.js';
 
 class ResonanceApp {
   constructor() {
@@ -45,6 +51,11 @@ class ResonanceApp {
     this.frequencyDisplay = null;
     this.controls = null;
     this.calibration = null;
+    this.wakeLock = null;
+    this.sessionTimer = null;
+    this.sessionRecorder = null;
+    this.sessionSummary = null;
+    this.frequencyReference = null;
     
     // State
     this.isRunning = false;
@@ -102,6 +113,27 @@ class ResonanceApp {
     
     // Frequency display
     this.frequencyDisplay = new FrequencyDisplay();
+    
+    // Wake lock (prevents screen sleep)
+    this.wakeLock = new WakeLock();
+    
+    // Session timer
+    this.sessionTimer = new SessionTimer();
+    
+    // Session recorder
+    this.sessionRecorder = new SessionRecorder();
+    
+    // Session summary
+    this.sessionSummary = new SessionSummary();
+    
+    // Frequency reference & tuner
+    this.frequencyReference = new FrequencyReference();
+    
+    // Screenshot button
+    const screenshotBtn = document.getElementById('screenshotBtn');
+    if (screenshotBtn) {
+      screenshotBtn.addEventListener('click', () => Screenshot.capture());
+    }
     
     // Show welcome if configured
     if (this.config.showWelcome) {
@@ -240,6 +272,15 @@ class ResonanceApp {
       // Stop idle animation if running
       this.bodyRenderer?.stopIdleAnimation();
       
+      // Acquire wake lock to prevent screen sleep
+      this.wakeLock?.acquire();
+      
+      // Start session timer
+      this.sessionTimer?.start();
+      
+      // Start session recorder
+      this.sessionRecorder?.start();
+      
       this.animate();
       
       console.log('Audio visualization started');
@@ -259,6 +300,22 @@ class ResonanceApp {
     if (this.animationFrame) {
       cancelAnimationFrame(this.animationFrame);
       this.animationFrame = null;
+    }
+    
+    // Release wake lock
+    this.wakeLock?.release();
+    
+    // Stop session timer (keep display visible briefly)
+    this.sessionTimer?.stop();
+    
+    // Stop session recorder and show summary
+    if (this.sessionRecorder?.isRecording) {
+      this.sessionRecorder.stop();
+      const summary = this.sessionRecorder.getSummary();
+      // Only show summary if session was longer than 5 seconds
+      if (summary.totalDurationMs > 5000) {
+        this.sessionSummary?.show(summary);
+      }
     }
     
     // Clean up audio
@@ -387,6 +444,20 @@ class ResonanceApp {
         // Update spectrum arc visualization
         this.spectrumArc?.update(audioData);
         
+        // Record session data
+        if (this.sessionRecorder?.isRecording) {
+          this.sessionRecorder.record(
+            this.frequencyMapper.intensities,
+            audioData.dominantFrequency,
+            deltaTime
+          );
+        }
+        
+        // Update tuner display
+        if (this.frequencyReference?.isTunerMode) {
+          this.frequencyReference.updateTuner(audioData.dominantFrequency);
+        }
+        
         // Update ambient effects
         const totalEnergy = this.frequencyMapper.getTotalEnergy();
         this.ambientEffects?.setIntensity(totalEnergy * 0.3);
@@ -492,6 +563,26 @@ class ResonanceApp {
       this.cymaticsOverlay?.setPositionMode(changes.cymaticsPosition);
     }
     
+    // Tuner Mode toggle
+    if (changes.tunerEnabled !== undefined) {
+      this.calibration?.setTunerEnabled(changes.tunerEnabled);
+      if (changes.tunerEnabled) {
+        this.frequencyReference?.enableTuner();
+      } else {
+        this.frequencyReference?.disableTuner();
+      }
+    }
+    
+    // Frequency Reference toggle
+    if (changes.freqRefEnabled !== undefined) {
+      this.calibration?.setFreqRefEnabled(changes.freqRefEnabled);
+      if (changes.freqRefEnabled) {
+        this.frequencyReference?.showReference();
+      } else {
+        this.frequencyReference?.hideReference();
+      }
+    }
+    
     // Save settings
     this.calibration?.saveSettings();
   }
@@ -536,6 +627,24 @@ class ResonanceApp {
     
     if (settings.cymaticsPosition !== undefined) {
       this.cymaticsOverlay?.setPositionMode(settings.cymaticsPosition);
+    }
+    
+    // Tuner
+    if (settings.tunerEnabled !== undefined) {
+      if (settings.tunerEnabled) {
+        this.frequencyReference?.enableTuner();
+      } else {
+        this.frequencyReference?.disableTuner();
+      }
+    }
+    
+    // Frequency Reference
+    if (settings.freqRefEnabled !== undefined) {
+      if (settings.freqRefEnabled) {
+        this.frequencyReference?.showReference();
+      } else {
+        this.frequencyReference?.hideReference();
+      }
     }
   }
   
@@ -593,6 +702,9 @@ class ResonanceApp {
     this.resonanceRings?.destroy();
     this.spectrumArc?.destroy();
     this.controls?.destroy();
+    this.sessionTimer?.destroy();
+    this.frequencyReference?.destroy();
+    this.sessionSummary?.remove();
     
     this.audioAnalyzer = null;
     this.frequencyMapper = null;
@@ -609,6 +721,11 @@ class ResonanceApp {
     this.frequencyDisplay = null;
     this.controls = null;
     this.calibration = null;
+    this.wakeLock = null;
+    this.sessionTimer = null;
+    this.sessionRecorder = null;
+    this.sessionSummary = null;
+    this.frequencyReference = null;
     
     this.isInitialized = false;
     console.log('App destroyed');
