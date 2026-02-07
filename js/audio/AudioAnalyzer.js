@@ -45,6 +45,22 @@ export class AudioAnalyzer {
   }
   
   /**
+   * Enumerate available audio input devices
+   * Must be called after getUserMedia has been granted at least once
+   */
+  static async getAudioInputDevices() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      return devices
+        .filter(d => d.kind === 'audioinput')
+        .map(d => ({ id: d.deviceId, label: d.label || `Microphone ${d.deviceId.slice(0, 8)}` }));
+    } catch (e) {
+      console.warn('Could not enumerate audio devices:', e);
+      return [];
+    }
+  }
+  
+  /**
    * Initialize the audio system and request microphone access
    * IMPORTANT: This MUST be called during a user gesture (click/tap) on iOS
    */
@@ -91,7 +107,8 @@ export class AudioAnalyzer {
           audio: {
             echoCancellation: false,
             noiseSuppression: false,
-            autoGainControl: false
+            autoGainControl: false,
+            deviceId: this.config.audioDeviceId ? { exact: this.config.audioDeviceId } : undefined
           }
         };
       }

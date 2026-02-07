@@ -1816,3 +1816,21 @@ body {
   color: var(--text-dim);
   line-height: 1.4;
 }
+
+
+/* ===== ACTIVE REGION LABEL (Accessibility) ===== */
+.freq-active-label {
+  font-family: var(--font-body);
+  font-size: var(--font-small);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  opacity: 0;
+  transition: opacity 0.3s ease, color 0.3s ease;
+  text-align: center;
+}
+
+.freq-active-label.visible {
+  opacity: 0.5;
+}
