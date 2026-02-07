@@ -21,7 +21,7 @@ export class Calibration {
     this.particlesEnabled = true;
     this.cascadeEnabled = true;
     this.cymaticsEnabled = true;
-    this.cymaticsPosition = 'center';
+    this.cymaticsPosition = 'region';
     this.tunerEnabled = false;
     this.freqRefEnabled = false;
     this.colorTheme = 'default';
@@ -445,7 +445,7 @@ export class Calibration {
     this.particlesEnabled = true;
     this.cascadeEnabled = true;
     this.cymaticsEnabled = true;
-    this.cymaticsPosition = 'center';
+    this.cymaticsPosition = 'region';
     this.tunerEnabled = false;
     this.freqRefEnabled = false;
     this.colorTheme = 'default';

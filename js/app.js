@@ -204,7 +204,7 @@ class ResonanceApp {
     
     // Cymatics overlay visualization
     this.cymaticsOverlay = new CymaticsOverlay({
-      positionMode: 'center'  // or 'region' to follow active chakra
+      positionMode: 'region'  // follow active chakra by default
     });
     this.cymaticsOverlay.init('.body-container');
     
