@@ -33,6 +33,9 @@ export class AudioFileInput {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Reset input so the same file can be re-selected
+    this.fileInput.value = '';
+
     // Clean up previous
     this.stop();
 

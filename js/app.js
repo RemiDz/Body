@@ -157,9 +157,11 @@ class ResonanceApp {
       screenshotBtn.addEventListener('click', () => Screenshot.capture());
     }
     
-    // Show welcome if configured
+    // Show welcome if configured, otherwise hide it
     if (this.config.showWelcome) {
       this.controls.showWelcome();
+    } else {
+      this.controls.hideWelcome();
     }
   }
   
@@ -298,6 +300,9 @@ class ResonanceApp {
       // Initialize spectrum arc (requires audioAnalyzer)
       if (!this.spectrumArc) {
         this.spectrumArc = new SpectrumArc('#bodyContainer', this.audioAnalyzer);
+      } else {
+        // Re-cache positions in case layout changed since construction
+        this.spectrumArc.clearCache();
       }
       
       // Apply current settings

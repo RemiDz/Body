@@ -199,6 +199,11 @@ export class SpectrumArc {
       return;
     }
     
+    // Lazily re-cache positions if they were empty at construction time
+    if (Object.keys(this.regionYPositions).length === 0) {
+      this.cacheRegionPositions();
+    }
+    
     // Get frequency range data
     const frequencyData = this.audioAnalyzer.getFrequencyRange(
       this.audioConfig.minFrequency,

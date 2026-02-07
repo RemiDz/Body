@@ -237,10 +237,10 @@ export class AudioAnalyzer {
         this.analyser.maxDecibels = this.config.maxDecibels;
       }
       
-      // Connect: source → gain → analyser, and also source → destination (speakers)
+      // Connect: source → gain → analyser, and gain → destination (speakers)
       this.source.connect(this.gainNode);
       this.gainNode.connect(this.analyser);
-      this.source.connect(this.audioContext.destination);
+      this.gainNode.connect(this.audioContext.destination);
       
       this.frequencyData = new Float32Array(this.analyser.frequencyBinCount);
       this.timeData = new Float32Array(this.analyser.fftSize);
@@ -281,7 +281,7 @@ export class AudioAnalyzer {
    */
   setGain(value) {
     if (this.gainNode) {
-      this.gainNode.gain.value = clamp(value, this.config.gainRange?.[0] || 0.1, this.config.gainRange?.[1] || 3.0);
+      this.gainNode.gain.value = clamp(value, this.config.gainRange?.[0] || 0.1, this.config.gainRange?.[1] || 4.0);
     }
   }
   
