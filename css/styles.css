@@ -1133,7 +1133,6 @@ body {
   /* iOS touch handling */
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  pointer-events: none; /* Let checkbox handle clicks */
 }
 
 .toggle-label::after {
