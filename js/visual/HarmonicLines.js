@@ -36,6 +36,9 @@ export class HarmonicLines {
     // Container for paths
     this.pathsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     this.svg.appendChild(this.pathsGroup);
+
+    // Invalidate position cache on resize
+    window.addEventListener('resize', () => this.clearCache());
   }
   
   /**
@@ -260,12 +263,16 @@ export class HarmonicLines {
   }
   
   /**
-   * Clear all path elements
+   * Clear all path elements and gradients
    */
   clear() {
-    // Remove all paths but keep defs
+    // Remove all paths
     while (this.pathsGroup.firstChild) {
       this.pathsGroup.removeChild(this.pathsGroup.firstChild);
+    }
+    // Remove all gradients to prevent DOM leak
+    while (this.defs.firstChild) {
+      this.defs.removeChild(this.defs.firstChild);
     }
   }
   

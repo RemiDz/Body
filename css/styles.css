@@ -211,6 +211,63 @@ body {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
+/* ===== iPHONE SIMULATED FULLSCREEN ===== */
+/* Stretch content to fill viewport when address bar is hidden */
+.iphone-fullscreen,
+.iphone-fullscreen body {
+  height: 100vh;
+  height: -webkit-fill-available;
+  overflow: hidden;
+}
+
+.iphone-fullscreen .app-container {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+/* Fullscreen toast notification */
+.fullscreen-toast {
+  position: fixed;
+  bottom: calc(var(--safe-bottom) + 80px);
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(30, 30, 40, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 12px 20px;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+  max-width: 300px;
+}
+
+.fullscreen-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.fullscreen-toast strong {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.light-theme .fullscreen-toast {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.light-theme .fullscreen-toast strong {
+  color: rgba(0, 0, 0, 0.9);
+}
+
 /* Light theme fullscreen button */
 .light-theme .btn-fullscreen {
   background: rgba(0, 0, 0, 0.03);

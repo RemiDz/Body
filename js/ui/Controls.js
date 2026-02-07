@@ -269,6 +269,13 @@ export class Controls {
   setupFullscreen() {
     if (!this.fullscreenBtn) return;
     
+    // Detect iPhone (not iPad) — iPhone Safari lacks Fullscreen API
+    this.isIPhone = /iPhone|iPod/.test(navigator.userAgent);
+    
+    // Detect if running as installed PWA (standalone mode)
+    this.isStandalone = window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    
     // Add tap handler for fullscreen button
     this.addTapHandler(this.fullscreenBtn, () => this.toggleFullscreen());
     
@@ -286,48 +293,110 @@ export class Controls {
     const doc = document;
     const elem = document.documentElement;
     
+    // Check if native Fullscreen API is available
+    const hasNativeFullscreen = !!(
+      elem.requestFullscreen ||
+      elem.webkitRequestFullscreen ||
+      elem.mozRequestFullScreen ||
+      elem.msRequestFullscreen
+    );
+    
     if (!this.isFullscreen) {
       // Enter fullscreen
-      try {
-        if (elem.requestFullscreen) {
-          await elem.requestFullscreen();
-        } else if (elem.webkitRequestFullscreen) {
-          // Safari/iOS
-          await elem.webkitRequestFullscreen();
-        } else if (elem.mozRequestFullScreen) {
-          await elem.mozRequestFullScreen();
-        } else if (elem.msRequestFullscreen) {
-          await elem.msRequestFullscreen();
-        } else {
-          // Fullscreen not supported - simulate with CSS only
-          console.log('Fullscreen API not supported, using CSS fallback');
-          this.setFullscreenUI(true);
+      if (hasNativeFullscreen) {
+        try {
+          if (elem.requestFullscreen) {
+            await elem.requestFullscreen();
+          } else if (elem.webkitRequestFullscreen) {
+            await elem.webkitRequestFullscreen();
+          } else if (elem.mozRequestFullScreen) {
+            await elem.mozRequestFullScreen();
+          } else if (elem.msRequestFullscreen) {
+            await elem.msRequestFullscreen();
+          }
+        } catch (err) {
+          console.warn('Fullscreen request failed:', err);
+          this.enterIPhoneFullscreen();
         }
-      } catch (err) {
-        console.warn('Fullscreen request failed:', err);
-        // Use CSS-only fallback
-        this.setFullscreenUI(true);
+      } else {
+        // iPhone Safari or other browser without Fullscreen API
+        this.enterIPhoneFullscreen();
       }
     } else {
       // Exit fullscreen
-      try {
-        if (doc.exitFullscreen) {
-          await doc.exitFullscreen();
-        } else if (doc.webkitExitFullscreen) {
-          await doc.webkitExitFullscreen();
-        } else if (doc.mozCancelFullScreen) {
-          await doc.mozCancelFullScreen();
-        } else if (doc.msExitFullscreen) {
-          await doc.msExitFullscreen();
-        } else {
-          // Fallback
-          this.setFullscreenUI(false);
+      if (hasNativeFullscreen && (doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement)) {
+        try {
+          if (doc.exitFullscreen) {
+            await doc.exitFullscreen();
+          } else if (doc.webkitExitFullscreen) {
+            await doc.webkitExitFullscreen();
+          } else if (doc.mozCancelFullScreen) {
+            await doc.mozCancelFullScreen();
+          } else if (doc.msExitFullscreen) {
+            await doc.msExitFullscreen();
+          }
+        } catch (err) {
+          console.warn('Exit fullscreen failed:', err);
+          this.exitIPhoneFullscreen();
         }
-      } catch (err) {
-        console.warn('Exit fullscreen failed:', err);
-        this.setFullscreenUI(false);
+      } else {
+        this.exitIPhoneFullscreen();
       }
     }
+  }
+  
+  /**
+   * Enter simulated fullscreen for iPhone Safari
+   * Hides address bar via scroll and applies CSS-based fullscreen
+   */
+  enterIPhoneFullscreen() {
+    // Apply CSS fullscreen class
+    this.setFullscreenUI(true);
+    
+    // Add iPhone-specific fullscreen class for extra CSS handling
+    document.documentElement.classList.add('iphone-fullscreen');
+    
+    // Scroll to hide the Safari address bar
+    window.scrollTo(0, 1);
+    
+    // Show a helpful toast if not running as PWA
+    if (this.isIPhone && !this.isStandalone) {
+      this.showFullscreenToast();
+    }
+  }
+  
+  /**
+   * Exit simulated fullscreen for iPhone Safari
+   */
+  exitIPhoneFullscreen() {
+    this.setFullscreenUI(false);
+    document.documentElement.classList.remove('iphone-fullscreen');
+    window.scrollTo(0, 0);
+  }
+  
+  /**
+   * Show a brief toast suggesting Add to Home Screen for true fullscreen
+   */
+  showFullscreenToast() {
+    // Don't show if already dismissed this session
+    if (this._fullscreenToastShown) return;
+    this._fullscreenToastShown = true;
+    
+    const toast = document.createElement('div');
+    toast.className = 'fullscreen-toast';
+    toast.innerHTML = `
+      <span>For true fullscreen, tap <strong>Share</strong> → <strong>Add to Home Screen</strong></span>
+    `;
+    document.body.appendChild(toast);
+    
+    // Trigger entrance animation
+    requestAnimationFrame(() => toast.classList.add('visible'));
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+      toast.classList.remove('visible');
+      setTimeout(() => toast.remove(), 400);
+    }, 5000);
   }
   
   /**

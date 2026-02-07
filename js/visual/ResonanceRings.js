@@ -49,6 +49,9 @@ export class ResonanceRings {
       this.activeBlooms[regionName] = [];
       this.lastSpawnTime[regionName] = 0;
     }
+
+    // Invalidate position cache on resize
+    window.addEventListener('resize', () => this.clearCache());
   }
   
   /**

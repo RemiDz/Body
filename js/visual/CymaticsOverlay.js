@@ -38,8 +38,10 @@ export class CymaticsOverlay {
     this.currentRegion = null;
     this.currentColor = '#00ff99';
     
-    // Fixed position at bottom of body (below root chakra area)
-    this.position = { x: 0.5, y: 0.75 };
+    // Set initial position based on configured mode
+    this.position = this.config.positionMode === 'center'
+      ? { x: 0.5, y: 0.5 }
+      : { x: 0.5, y: 0.75 };
     
     // Region positions if following
     this.regionPositions = {
