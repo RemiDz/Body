@@ -1586,3 +1586,154 @@ body {
 .light-theme .session-summary-content {
   background: rgba(245, 242, 237, 0.95);
 }
+
+
+/* ===== LANDSCAPE MODE SUPPORT ===== */
+@media (orientation: landscape) and (max-height: 600px) {
+  .app-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: var(--space-sm) var(--space-md);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .app-title {
+    position: absolute;
+    top: var(--space-sm);
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    font-size: 0.7rem;
+  }
+
+  .body-container {
+    flex: 0 0 auto;
+    width: 50vw;
+    max-width: none;
+    height: 90vh;
+  }
+
+  .body-wrapper {
+    max-height: 85vh;
+  }
+
+  .frequency-display {
+    position: absolute;
+    right: var(--space-lg);
+    top: 50%;
+    transform: translateY(-50%);
+    height: auto;
+    min-height: auto;
+  }
+
+  .controls {
+    position: absolute;
+    bottom: var(--space-sm);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .session-timer {
+    position: absolute;
+    right: var(--space-lg);
+    top: var(--space-lg);
+  }
+}
+
+/* Desktop landscape — wider screens */
+@media (orientation: landscape) and (min-width: 1024px) {
+  .body-container {
+    max-width: 45vw;
+  }
+
+  .body-wrapper {
+    max-height: 82vh;
+  }
+}
+
+/* ===== DESKTOP HOVER STATES ===== */
+@media (hover: hover) {
+  .btn-primary:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary.active:hover {
+    background: rgba(0, 255, 136, 0.2);
+    border-color: rgba(0, 255, 136, 0.4);
+    box-shadow: 0 0 25px rgba(0, 255, 136, 0.15);
+  }
+
+  .btn-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+}
+
+/* ===== FONT SCALING ON VERY LARGE SCREENS ===== */
+@media (min-width: 1440px) {
+  .frequency-display {
+    height: 100px;
+    min-height: 100px;
+  }
+
+  .freq-value {
+    font-size: clamp(2.5rem, 4vw, 4rem);
+  }
+
+  .freq-note {
+    font-size: clamp(2rem, 3.5vw, 3rem);
+  }
+
+  .freq-region {
+    font-size: 0.9rem;
+  }
+
+  .app-title {
+    font-size: clamp(1rem, 1.5vw, 1.4rem);
+  }
+
+  .btn {
+    font-size: 0.85rem;
+    padding: var(--space-lg) var(--space-2xl);
+  }
+
+  .session-timer {
+    font-size: clamp(1.1rem, 1.5vw, 1.4rem);
+  }
+
+  .tuner-note {
+    font-size: clamp(1.6rem, 2vw, 2.2rem);
+  }
+
+  .tuner-cents-bar {
+    width: 220px;
+  }
+}
+
+@media (min-width: 2000px) {
+  .freq-value {
+    font-size: 4.5rem;
+  }
+
+  .freq-note {
+    font-size: 3.5rem;
+  }
+
+  .body-container {
+    max-width: 800px;
+  }
+}
+
+/* ===== WELCOME OVERLAY DISMISS ON BACKGROUND TAP ===== */
+/* The welcome overlay already has pointer-events, just needs cursor */
+.welcome-overlay {
+  cursor: pointer;
+}
+
+.welcome-overlay .overlay-content {
+  cursor: default;
+}

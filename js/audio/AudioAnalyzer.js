@@ -30,6 +30,10 @@ export class AudioAnalyzer {
     this.lastFundamental = 0;
     this.fundamentalConfidence = 0;
     this.harmonicProfile = [];
+    
+    // Onset detection for transient reset
+    this.prevRMS = 0;
+    this.onsetThreshold = 3.0; // RMS ratio threshold for onset
   }
   
   /**
@@ -266,12 +270,25 @@ export class AudioAnalyzer {
    * Improved fundamental frequency estimation using:
    * 1. Harmonic Product Spectrum (HPS)
    * 2. Peak-based harmonic analysis
-   * 3. Temporal smoothing
+   * 3. Autocorrelation for low frequencies (especially on iOS)
+   * 4. Onset detection for transient reset
+   * 5. Temporal smoothing
    */
   estimateFundamental(peaks) {
     if (!peaks || peaks.length === 0) return 0;
     
     const binSize = this.audioContext.sampleRate / this.analyser.fftSize;
+    
+    // Onset detection: reset smoother on transients
+    const currentRMS = this.calculateRMS();
+    const isOnset = this.prevRMS > 0 && currentRMS / (this.prevRMS + 1e-10) > this.onsetThreshold;
+    this.prevRMS = currentRMS;
+    
+    if (isOnset) {
+      // Reset fundamental tracking on transient — allows fast snap to new pitch
+      this.lastFundamental = 0;
+      this.fundamentalConfidence = 0;
+    }
     
     // Method 1: Harmonic Product Spectrum
     const hpsResult = this.harmonicProductSpectrum(peaks, binSize);
@@ -279,33 +296,45 @@ export class AudioAnalyzer {
     // Method 2: Peak-based harmonic analysis
     const peakResult = this.estimateFundamentalFromPeaks(peaks);
     
-    // Combine results
+    // Method 3: Autocorrelation for low frequencies (< 150 Hz), especially useful on iOS
+    let acResult = { frequency: 0, confidence: 0 };
+    const lowestPeak = peaks.length > 0 ? peaks[peaks.length - 1].frequency : 999;
+    if (lowestPeak < 200 || (AudioAnalyzer.isIOS() && peaks[0]?.frequency < 300)) {
+      acResult = this.autocorrelationPitch();
+    }
+    
+    // Method 1: Harmonic Product Spectrum
+    const hpsResult = this.harmonicProductSpectrum(peaks, binSize);
+    
+    // Method 2: Peak-based harmonic analysis
+    const peakResult = this.estimateFundamentalFromPeaks(peaks);
+    
+    // Combine results from all methods
     let bestFreq = 0;
     let bestConfidence = 0;
     
-    if (hpsResult.confidence > peakResult.confidence * 1.2) {
-      bestFreq = hpsResult.frequency;
-      bestConfidence = hpsResult.confidence;
-    } else if (peakResult.confidence > hpsResult.confidence * 1.2) {
-      bestFreq = peakResult.frequency;
-      bestConfidence = peakResult.confidence;
-    } else {
-      // Use the lower frequency (more likely fundamental)
-      if (hpsResult.frequency > 0 && peakResult.frequency > 0) {
-        const lower = Math.min(hpsResult.frequency, peakResult.frequency);
-        const higher = Math.max(hpsResult.frequency, peakResult.frequency);
-        const ratio = higher / lower;
-        
-        if (Math.abs(ratio - Math.round(ratio)) < 0.1) {
-          bestFreq = lower;
-          bestConfidence = Math.max(hpsResult.confidence, peakResult.confidence);
-        } else {
-          bestFreq = hpsResult.confidence > peakResult.confidence ? hpsResult.frequency : peakResult.frequency;
-          bestConfidence = Math.max(hpsResult.confidence, peakResult.confidence);
+    // Gather all candidates
+    const candidates = [hpsResult, peakResult];
+    if (acResult.confidence > 0.2) {
+      candidates.push(acResult);
+    }
+    
+    // Sort by confidence
+    candidates.sort((a, b) => b.confidence - a.confidence);
+    
+    if (candidates.length > 0 && candidates[0].confidence > 0) {
+      bestFreq = candidates[0].frequency;
+      bestConfidence = candidates[0].confidence;
+      
+      // If top two agree (within harmonic relationship), boost confidence
+      if (candidates.length > 1 && candidates[1].confidence > 0.15) {
+        const ratio = candidates[0].frequency / candidates[1].frequency;
+        const nearInt = Math.abs(ratio - Math.round(ratio));
+        if (nearInt < 0.08) {
+          // They agree — use the lower one (more likely fundamental)
+          bestFreq = Math.min(candidates[0].frequency, candidates[1].frequency);
+          bestConfidence = Math.min(1, bestConfidence * 1.2);
         }
-      } else {
-        bestFreq = hpsResult.frequency || peakResult.frequency;
-        bestConfidence = Math.max(hpsResult.confidence, peakResult.confidence);
       }
     }
     
@@ -450,6 +479,73 @@ export class AudioAnalyzer {
     }
     
     return profile;
+  }
+
+  /**
+   * Autocorrelation-based pitch estimation
+   * More accurate than FFT for low frequencies where bin resolution is poor
+   */
+  autocorrelationPitch() {
+    if (!this.timeData || this.timeData.length === 0) {
+      return { frequency: 0, confidence: 0 };
+    }
+    
+    const sampleRate = this.audioContext.sampleRate;
+    const buf = this.timeData;
+    const n = buf.length;
+    
+    // Lag range corresponding to minFrequency..maxFrequency
+    const minLag = Math.floor(sampleRate / Math.min(this.config.maxFrequency, 500));
+    const maxLag = Math.min(Math.ceil(sampleRate / this.config.minFrequency), n / 2);
+    
+    // Normalized autocorrelation
+    let bestLag = 0;
+    let bestCorr = 0;
+    let energy = 0;
+    
+    for (let i = 0; i < n; i++) {
+      energy += buf[i] * buf[i];
+    }
+    
+    if (energy < 1e-10) return { frequency: 0, confidence: 0 };
+    
+    for (let lag = minLag; lag <= maxLag; lag++) {
+      let corr = 0;
+      for (let i = 0; i < n - lag; i++) {
+        corr += buf[i] * buf[i + lag];
+      }
+      corr /= energy;
+      
+      if (corr > bestCorr) {
+        bestCorr = corr;
+        bestLag = lag;
+      }
+    }
+    
+    if (bestLag === 0 || bestCorr < 0.3) {
+      return { frequency: 0, confidence: 0 };
+    }
+    
+    // Parabolic interpolation around the peak for sub-sample accuracy
+    if (bestLag > minLag && bestLag < maxLag) {
+      let corrPrev = 0, corrNext = 0;
+      for (let i = 0; i < n - bestLag - 1; i++) {
+        corrPrev += buf[i] * buf[i + bestLag - 1];
+        corrNext += buf[i] * buf[i + bestLag + 1];
+      }
+      corrPrev /= energy;
+      corrNext /= energy;
+      
+      const shift = 0.5 * (corrPrev - corrNext) / (corrPrev - 2 * bestCorr + corrNext);
+      if (isFinite(shift)) {
+        bestLag += shift;
+      }
+    }
+    
+    const frequency = sampleRate / bestLag;
+    const confidence = clamp(bestCorr, 0, 1);
+    
+    return { frequency, confidence };
   }
 
   /**
