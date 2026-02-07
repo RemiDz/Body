@@ -373,12 +373,6 @@ export class AudioAnalyzer {
       acResult = this.autocorrelationPitch();
     }
     
-    // Method 1: Harmonic Product Spectrum
-    const hpsResult = this.harmonicProductSpectrum(peaks, binSize);
-    
-    // Method 2: Peak-based harmonic analysis
-    const peakResult = this.estimateFundamentalFromPeaks(peaks);
-    
     // Combine results from all methods
     let bestFreq = 0;
     let bestConfidence = 0;
