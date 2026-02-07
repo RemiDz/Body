@@ -349,3 +349,78 @@
     --duration-breathing: 0ms;
   }
 }
+
+
+/* ===== COLOR THEME PRESETS ===== */
+
+/* Earth Tones */
+.theme-earth {
+  --color-root: #8b4513;
+  --color-root-glow: #a0522d;
+  --color-sacral: #b8860b;
+  --color-sacral-glow: #daa520;
+  --color-solar: #bdb76b;
+  --color-solar-glow: #eee8aa;
+  --color-heart: #556b2f;
+  --color-heart-glow: #6b8e23;
+  --color-throat: #5f9ea0;
+  --color-throat-glow: #7ec8ca;
+  --color-thirdeye: #6a5acd;
+  --color-thirdeye-glow: #8470ff;
+  --color-crown: #8b7d6b;
+  --color-crown-glow: #c4b59d;
+}
+
+/* Ocean */
+.theme-ocean {
+  --color-root: #1a3a4a;
+  --color-root-glow: #2a5a6a;
+  --color-sacral: #1e6080;
+  --color-sacral-glow: #2e80a0;
+  --color-solar: #2090a0;
+  --color-solar-glow: #30b0c0;
+  --color-heart: #20a0a0;
+  --color-heart-glow: #40d0d0;
+  --color-throat: #30b0d0;
+  --color-throat-glow: #50d0f0;
+  --color-thirdeye: #4080c0;
+  --color-thirdeye-glow: #60a0e0;
+  --color-crown: #6090d0;
+  --color-crown-glow: #80b0f0;
+}
+
+/* Monochrome */
+.theme-mono {
+  --color-root: #333333;
+  --color-root-glow: #555555;
+  --color-sacral: #444444;
+  --color-sacral-glow: #666666;
+  --color-solar: #555555;
+  --color-solar-glow: #888888;
+  --color-heart: #666666;
+  --color-heart-glow: #999999;
+  --color-throat: #777777;
+  --color-throat-glow: #aaaaaa;
+  --color-thirdeye: #888888;
+  --color-thirdeye-glow: #bbbbbb;
+  --color-crown: #999999;
+  --color-crown-glow: #cccccc;
+}
+
+/* Sunset */
+.theme-sunset {
+  --color-root: #8b0000;
+  --color-root-glow: #cc2200;
+  --color-sacral: #cc4400;
+  --color-sacral-glow: #ff6600;
+  --color-solar: #dd7700;
+  --color-solar-glow: #ffaa00;
+  --color-heart: #ddaa00;
+  --color-heart-glow: #ffcc33;
+  --color-throat: #cc6688;
+  --color-throat-glow: #ee88aa;
+  --color-thirdeye: #9944aa;
+  --color-thirdeye-glow: #bb66cc;
+  --color-crown: #663388;
+  --color-crown-glow: #8855aa;
+}

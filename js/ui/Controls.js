@@ -258,6 +258,32 @@ export class Controls {
         this.emitSettingsChange({ freqRefEnabled: checked });
       });
     }
+    
+    // Color Theme selector
+    const colorThemeSelector = document.getElementById('colorThemeSelector');
+    if (colorThemeSelector) {
+      const themeButtons = colorThemeSelector.querySelectorAll('button');
+      themeButtons.forEach(btn => {
+        this.addTapHandler(btn, () => {
+          themeButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.emitSettingsChange({ colorTheme: btn.dataset.theme });
+        });
+      });
+    }
+    
+    // Visualization Intensity Preset selector
+    const vizPresetSelector = document.getElementById('vizPresetSelector');
+    if (vizPresetSelector) {
+      const presetButtons = vizPresetSelector.querySelectorAll('button');
+      presetButtons.forEach(btn => {
+        this.addTapHandler(btn, () => {
+          presetButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.emitSettingsChange({ vizPreset: btn.dataset.preset });
+        });
+      });
+    }
   }
   
   /**
@@ -733,6 +759,26 @@ export class Controls {
     const freqRefToggle = document.getElementById('freqRefToggle');
     if (freqRefToggle && settings.freqRefEnabled !== undefined) {
       freqRefToggle.checked = settings.freqRefEnabled;
+    }
+    
+    // Color Theme
+    if (settings.colorTheme !== undefined) {
+      const colorThemeSelector = document.getElementById('colorThemeSelector');
+      if (colorThemeSelector) {
+        colorThemeSelector.querySelectorAll('button').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.theme === settings.colorTheme);
+        });
+      }
+    }
+    
+    // Visualization Preset
+    if (settings.vizPreset !== undefined) {
+      const vizPresetSelector = document.getElementById('vizPresetSelector');
+      if (vizPresetSelector) {
+        vizPresetSelector.querySelectorAll('button').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.preset === settings.vizPreset);
+        });
+      }
     }
   }
   

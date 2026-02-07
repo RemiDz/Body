@@ -24,6 +24,8 @@ export class Calibration {
     this.cymaticsPosition = 'center';
     this.tunerEnabled = false;
     this.freqRefEnabled = false;
+    this.colorTheme = 'default';
+    this.vizPreset = 'standard';
     
     // Calibration state
     this.isCalibrating = false;
@@ -253,6 +255,22 @@ export class Calibration {
   }
   
   /**
+   * Set color theme
+   */
+  setColorTheme(theme) {
+    this.colorTheme = theme;
+    this.emitChange();
+  }
+  
+  /**
+   * Set visualization preset
+   */
+  setVizPreset(preset) {
+    this.vizPreset = preset;
+    this.emitChange();
+  }
+  
+  /**
    * Apply settings from object
    */
   applySettings(settings) {
@@ -292,6 +310,14 @@ export class Calibration {
       this.freqRefEnabled = settings.freqRefEnabled;
     }
     
+    if (settings.colorTheme !== undefined) {
+      this.colorTheme = settings.colorTheme;
+    }
+    
+    if (settings.vizPreset !== undefined) {
+      this.vizPreset = settings.vizPreset;
+    }
+    
     this.emitChange();
   }
   
@@ -308,7 +334,9 @@ export class Calibration {
       cymaticsEnabled: this.cymaticsEnabled,
       cymaticsPosition: this.cymaticsPosition,
       tunerEnabled: this.tunerEnabled,
-      freqRefEnabled: this.freqRefEnabled
+      freqRefEnabled: this.freqRefEnabled,
+      colorTheme: this.colorTheme,
+      vizPreset: this.vizPreset
     };
   }
   
@@ -420,6 +448,8 @@ export class Calibration {
     this.cymaticsPosition = 'center';
     this.tunerEnabled = false;
     this.freqRefEnabled = false;
+    this.colorTheme = 'default';
+    this.vizPreset = 'standard';
     this.emitChange();
     this.saveSettings();
   }

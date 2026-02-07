@@ -1737,3 +1737,16 @@ body {
 .welcome-overlay .overlay-content {
   cursor: default;
 }
+
+
+/* ===== COLOR THEME & VIZ PRESET SELECTORS ===== */
+#colorThemeSelector,
+#vizPresetSelector {
+  flex-wrap: wrap;
+}
+
+#colorThemeSelector button,
+#vizPresetSelector button {
+  flex: 0 0 auto;
+  min-width: 50px;
+}

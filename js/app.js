@@ -514,6 +514,47 @@ class ResonanceApp {
   }
   
   /**
+   * Apply a color theme preset
+   */
+  applyColorTheme(theme) {
+    const body = document.body;
+    // Remove all theme classes
+    body.classList.remove('theme-earth', 'theme-ocean', 'theme-sunset', 'theme-mono');
+    if (theme && theme !== 'default') {
+      body.classList.add(`theme-${theme}`);
+    }
+  }
+  
+  /**
+   * Apply a visualization intensity preset
+   */
+  applyVizPreset(preset) {
+    const presets = {
+      subtle: { glowIntensity: 0.5, particlesEnabled: false, cascadeEnabled: false, cymaticsEnabled: false },
+      standard: { glowIntensity: 1.0, particlesEnabled: true, cascadeEnabled: true, cymaticsEnabled: true },
+      dramatic: { glowIntensity: 1.8, particlesEnabled: true, cascadeEnabled: true, cymaticsEnabled: true }
+    };
+    
+    const settings = presets[preset];
+    if (!settings) return;
+    
+    // Apply each setting
+    this.calibration?.setGlowIntensity(settings.glowIntensity);
+    this.calibration?.setParticlesEnabled(settings.particlesEnabled);
+    this.calibration?.setCascadeEnabled(settings.cascadeEnabled);
+    this.calibration?.setCymaticsEnabled(settings.cymaticsEnabled);
+    
+    this.glowEngine?.setIntensityMultiplier(settings.glowIntensity);
+    this.frequencyMapper?.setGlowIntensity(settings.glowIntensity);
+    this.particleSystem?.setEnabled(settings.particlesEnabled);
+    this.harmonicCascade?.setEnabled(settings.cascadeEnabled);
+    this.cymaticsOverlay?.setEnabled(settings.cymaticsEnabled);
+    
+    // Update UI controls to reflect preset values
+    this.controls?.updateSettingsUI(settings);
+  }
+  
+  /**
    * Cache region bounding boxes for particle spawning
    */
   cacheRegionBounds() {
@@ -583,6 +624,18 @@ class ResonanceApp {
       }
     }
     
+    // Color Theme
+    if (changes.colorTheme !== undefined) {
+      this.calibration?.setColorTheme(changes.colorTheme);
+      this.applyColorTheme(changes.colorTheme);
+    }
+    
+    // Visualization Intensity Preset
+    if (changes.vizPreset !== undefined) {
+      this.calibration?.setVizPreset(changes.vizPreset);
+      this.applyVizPreset(changes.vizPreset);
+    }
+    
     // Save settings
     this.calibration?.saveSettings();
   }
@@ -646,6 +699,13 @@ class ResonanceApp {
         this.frequencyReference?.hideReference();
       }
     }
+    
+    // Color Theme
+    if (settings.colorTheme !== undefined) {
+      this.applyColorTheme(settings.colorTheme);
+    }
+    
+    // Viz Preset (don't re-apply on load — individual settings already loaded)
   }
   
   /**
