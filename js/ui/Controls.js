@@ -108,9 +108,9 @@ export class Controls {
     // Welcome overlay - Allow Mic button (CRITICAL for iOS)
     this.addTapHandler(this.allowMicBtn, () => this.handleStart());
     
-    // Welcome overlay - dismiss on background tap
+    // Welcome overlay - dismiss on background tap (click only, to avoid touch interference)
     if (this.welcomeOverlay) {
-      this.addTapHandler(this.welcomeOverlay, (e) => {
+      this.welcomeOverlay.addEventListener('click', (e) => {
         if (e.target === this.welcomeOverlay) {
           this.handleStart();
         }
