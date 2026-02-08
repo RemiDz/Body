@@ -301,6 +301,8 @@ class ResonanceApp {
       if (!this.spectrumArc) {
         this.spectrumArc = new SpectrumArc('#bodyContainer', this.audioAnalyzer);
       } else {
+        // Update audioAnalyzer reference (it's recreated on each start)
+        this.spectrumArc.audioAnalyzer = this.audioAnalyzer;
         // Re-cache positions in case layout changed since construction
         this.spectrumArc.clearCache();
       }
@@ -592,6 +594,12 @@ class ResonanceApp {
       
       this.applySettings(this.calibration?.getSettings() || {});
       this.controls?.onMicrophoneGranted();
+      
+      // Update SpectrumArc's audioAnalyzer reference
+      if (this.spectrumArc) {
+        this.spectrumArc.audioAnalyzer = this.audioAnalyzer;
+        this.spectrumArc.clearCache();
+      }
       
       this.isRunning = true;
       this.lastFrameTime = performance.now();

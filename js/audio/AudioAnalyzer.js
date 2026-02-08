@@ -368,8 +368,8 @@ export class AudioAnalyzer {
     
     // Method 3: Autocorrelation for low frequencies (< 150 Hz), especially useful on iOS
     let acResult = { frequency: 0, confidence: 0 };
-    const lowestPeak = peaks.length > 0 ? peaks[peaks.length - 1].frequency : 999;
-    if (lowestPeak < 200 || (AudioAnalyzer.isIOS() && peaks[0]?.frequency < 300)) {
+    const lowestPeakFreq = peaks.length > 0 ? Math.min(...peaks.map(p => p.frequency)) : 999;
+    if (lowestPeakFreq < 200 || (AudioAnalyzer.isIOS() && peaks[0]?.frequency < 300)) {
       acResult = this.autocorrelationPitch();
     }
     
@@ -430,7 +430,9 @@ export class AudioAnalyzer {
     }
     
     const numHarmonics = 5;
-    const hps = new Float32Array(Math.floor(maxBin / numHarmonics)).fill(1);
+    const hpsLength = Math.floor(maxBin / numHarmonics);
+    if (hpsLength === 0) return { frequency: 0, confidence: 0 };
+    const hps = new Float32Array(hpsLength).fill(1);
     
     for (let h = 1; h <= numHarmonics; h++) {
       for (let i = 0; i < hps.length; i++) {
@@ -677,9 +679,10 @@ export class AudioAnalyzer {
         const alpha = this.frequencyData[i - 1];
         const beta = amplitude;
         const gamma = this.frequencyData[i + 1];
-        const p = 0.5 * (alpha - gamma) / (alpha - 2 * beta + gamma);
+        const denom = alpha - 2 * beta + gamma;
+        const p = Math.abs(denom) > 1e-10 ? 0.5 * (alpha - gamma) / denom : 0;
         
-        const interpolatedBin = i + p;
+        const interpolatedBin = i + (isFinite(p) ? p : 0);
         const interpolatedFrequency = interpolatedBin * binSize;
         
         // Normalize amplitude to 0-1 range

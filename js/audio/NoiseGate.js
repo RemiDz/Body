@@ -192,7 +192,7 @@ export class NoiseGate {
     this.calibrationSamples = [];
     
     if (this.calibrationResolve) {
-      this.calibrationResolve(null);
+      this.calibrationResolve({ noiseFloor: this.noiseFloorEstimate, threshold: this.threshold, cancelled: true });
       this.calibrationResolve = null;
     }
   }
