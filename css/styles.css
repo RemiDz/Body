@@ -25,6 +25,7 @@
 html,
 body {
   height: 100%;
+  height: 100dvh;
   width: 100%;
   overflow: hidden;
   background: var(--bg-deep);
@@ -51,11 +52,12 @@ body {
   position: relative;
   width: 100%;
   height: 100%;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: calc(var(--safe-top) + var(--space-lg)) var(--space-md) calc(var(--safe-bottom) + var(--space-lg));
+  padding: calc(var(--safe-top) + var(--space-lg)) calc(var(--safe-right) + var(--space-md)) calc(var(--safe-bottom) + var(--space-lg)) calc(var(--safe-left) + var(--space-md));
   overflow: hidden;
 }
 
@@ -150,7 +152,7 @@ body {
 .btn-fullscreen {
   position: fixed;
   top: calc(var(--safe-top) + var(--space-md));
-  right: var(--space-md);
+  right: calc(var(--safe-right) + var(--space-md));
   width: 36px;
   height: 36px;
   display: flex;
@@ -225,13 +227,13 @@ body {
 /* Stretch content to fill viewport when address bar is hidden */
 .iphone-fullscreen,
 .iphone-fullscreen body {
-  height: 100vh;
+  height: 100dvh;
   height: -webkit-fill-available;
   overflow: hidden;
 }
 
 .iphone-fullscreen .app-container {
-  min-height: 100vh;
+  min-height: 100dvh;
   min-height: -webkit-fill-available;
 }
 
@@ -256,7 +258,7 @@ body {
   opacity: 0;
   transition: opacity 0.4s ease, transform 0.4s ease;
   pointer-events: none;
-  max-width: 300px;
+  max-width: min(300px, calc(100vw - var(--safe-left) - var(--safe-right) - 32px));
 }
 
 .fullscreen-toast.visible {
@@ -310,7 +312,7 @@ body {
   position: relative;
   width: 95%;
   height: 100%;
-  max-height: 65vh;
+  max-height: 65dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -755,6 +757,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
+  height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -765,6 +768,8 @@ body {
   padding: var(--space-lg);
   padding-top: calc(var(--safe-top) + var(--space-lg));
   padding-bottom: calc(var(--safe-bottom) + var(--space-lg));
+  padding-left: calc(var(--safe-left) + var(--space-lg));
+  padding-right: calc(var(--safe-right) + var(--space-lg));
   /* iOS touch handling and scrolling */
   touch-action: manipulation;
   -webkit-overflow-scrolling: touch;
@@ -930,7 +935,7 @@ body {
   
   /* Maximize body height */
   .body-wrapper {
-    max-height: 55vh;
+    max-height: 55dvh;
   }
   
   .body-container {
@@ -995,11 +1000,11 @@ body {
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   @media (max-width: 430px) {
     .app-container {
-      padding-bottom: calc(env(safe-area-inset-bottom, 20px) + var(--space-lg));
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-lg));
     }
     
     .controls {
-      margin-bottom: env(safe-area-inset-bottom, 0px);
+      margin-bottom: 0;
     }
   }
 }
@@ -1008,9 +1013,17 @@ body {
 .settings-content {
   max-width: 400px;
   width: 100%;
+  max-height: 80dvh;
   max-height: 80vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--safe-bottom) + var(--space-md));
+}
+
+@supports (height: 1dvh) {
+  .settings-content {
+    max-height: 80dvh;
+  }
 }
 
 .settings-header {
@@ -1188,7 +1201,7 @@ body {
 /* ===== RESPONSIVE ===== */
 @media (max-height: 700px) {
   .body-wrapper {
-    max-height: 55vh;
+    max-height: 55dvh;
   }
   
   .frequency-display {
@@ -1213,7 +1226,7 @@ body {
   
   .body-wrapper {
     width: 100%;
-    max-height: 78vh;
+    max-height: 78dvh;
   }
 }
 
@@ -1224,7 +1237,7 @@ body {
   }
   
   .body-wrapper {
-    max-height: 80vh;
+    max-height: 80dvh;
   }
 }
 
@@ -1241,7 +1254,7 @@ body {
   
   .body-wrapper {
     width: 100%;
-    max-height: 65vh;
+    max-height: 65dvh;
   }
   
   .frequency-display {
@@ -1509,7 +1522,7 @@ body {
 .freq-reference-overlay {
   position: fixed;
   top: calc(var(--safe-top) + 60px);
-  left: var(--space-md);
+  left: calc(var(--safe-left) + var(--space-md));
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -1611,7 +1624,7 @@ body {
 .btn-screenshot {
   position: fixed;
   top: calc(var(--safe-top) + var(--space-md));
-  right: calc(var(--space-md) + 44px);
+  right: calc(var(--safe-right) + var(--space-md) + 44px);
   width: 36px;
   height: 36px;
   display: flex;
@@ -1670,18 +1683,20 @@ body {
 
 
 /* ===== LANDSCAPE MODE SUPPORT ===== */
-@media (orientation: landscape) and (max-height: 600px) {
+@media (orientation: landscape) and (max-height: 500px) {
   .app-container {
     flex-direction: row;
     flex-wrap: wrap;
-    padding: var(--space-sm) var(--space-md);
+    padding: var(--space-sm) calc(var(--safe-right) + var(--space-md)) var(--space-sm) calc(var(--safe-left) + var(--space-md));
+    padding-top: calc(var(--safe-top) + var(--space-sm));
+    padding-bottom: calc(var(--safe-bottom) + var(--space-sm));
     justify-content: center;
     align-items: center;
   }
 
   .app-title {
     position: absolute;
-    top: var(--space-sm);
+    top: var(--safe-top, 0px);
     left: 50%;
     transform: translateX(-50%);
     margin: 0;
@@ -1692,16 +1707,16 @@ body {
     flex: 0 0 auto;
     width: 50vw;
     max-width: none;
-    height: 90vh;
+    height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - var(--space-md));
   }
 
   .body-wrapper {
-    max-height: 85vh;
+    max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 40px);
   }
 
   .frequency-display {
     position: absolute;
-    right: var(--space-lg);
+    right: calc(var(--safe-right) + var(--space-lg));
     top: 50%;
     transform: translateY(-50%);
     height: auto;
@@ -1710,15 +1725,37 @@ body {
 
   .controls {
     position: absolute;
-    bottom: var(--space-sm);
+    bottom: calc(var(--safe-bottom) + var(--space-sm));
     left: 50%;
     transform: translateX(-50%);
   }
 
   .session-timer {
     position: absolute;
-    right: var(--space-lg);
-    top: var(--space-lg);
+    right: calc(var(--safe-right) + var(--space-lg));
+    top: calc(var(--safe-top) + var(--space-lg));
+  }
+  
+  /* Settings panel in landscape */
+  .settings-content {
+    max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - var(--space-xl));
+  }
+  
+  .overlay-content {
+    max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - var(--space-xl));
+    overflow-y: auto;
+  }
+}
+
+/* Landscape on taller phones (500-700px height) */
+@media (orientation: landscape) and (min-height: 501px) and (max-height: 700px) {
+  .app-container {
+    padding-left: calc(var(--safe-left) + var(--space-md));
+    padding-right: calc(var(--safe-right) + var(--space-md));
+  }
+  
+  .body-wrapper {
+    max-height: 80dvh;
   }
 }
 
@@ -1729,7 +1766,7 @@ body {
   }
 
   .body-wrapper {
-    max-height: 82vh;
+    max-height: 82dvh;
   }
 }
 
@@ -1841,10 +1878,17 @@ body {
 .instrument-guide-content {
   max-width: 460px;
   width: 100%;
+  max-height: 85dvh;
   max-height: 85vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   text-align: left;
+}
+
+@supports (height: 1dvh) {
+  .instrument-guide-content {
+    max-height: 85dvh;
+  }
 }
 
 .guide-region-chips {
