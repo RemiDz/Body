@@ -62,9 +62,15 @@ export class SessionRecorder {
 
     // Sample frequency history
     if (now - this.lastSampleTime >= this.sampleInterval) {
+      // Capture region intensities snapshot alongside frequency
+      const snapshot = {};
+      for (const [name, intensity] of Object.entries(intensities)) {
+        snapshot[name] = Math.round(intensity * 100) / 100;
+      }
       this.frequencyHistory.push({
         time: now - this.startTime,
-        frequency: dominantFrequency || 0
+        frequency: dominantFrequency || 0,
+        regions: snapshot
       });
       this.lastSampleTime = now;
     }

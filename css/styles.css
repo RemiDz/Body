@@ -1504,8 +1504,10 @@ body {
 
 .summary-sparkline {
   width: 100%;
-  height: 60px;
+  height: 100px;
   display: block;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .summary-actions {
