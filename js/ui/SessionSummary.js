@@ -16,15 +16,20 @@ export class SessionSummary {
     const secs = Math.floor((dur % 60000) / 1000);
     const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
 
-    // Sort regions by activation
-    const sorted = Object.entries(summary.regions)
-      .sort((a, b) => b[1].activationMs - a[1].activationMs);
+    // Fixed chakra order: root (bottom) to crown (top)
+    const regionOrder = ['root', 'sacral', 'solar', 'heart', 'throat', 'thirdEye', 'crown'];
+    const ordered = regionOrder
+      .filter(name => summary.regions[name])
+      .map(name => [name, summary.regions[name]]);
 
-    const bars = sorted.map(([, r]) => {
+    const bars = ordered.map(([, r]) => {
       const pct = r.activationPercent;
       return `
         <div class="summary-bar-row">
-          <span class="summary-bar-label">${r.label}</span>
+          <div class="summary-bar-id">
+            <span class="summary-chakra-icon" style="background:${r.color}"></span>
+            <span class="summary-bar-label" style="color:${r.glowColor}">${r.label}</span>
+          </div>
           <div class="summary-bar-track">
             <div class="summary-bar-fill" style="width:${pct}%;background:${r.color}"></div>
           </div>

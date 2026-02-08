@@ -455,14 +455,6 @@ class ResonanceApp {
             dominant.config.glowHex,
             dominant.config.label
           );
-          
-          // Update active region label for accessibility
-          const activeLabel = document.getElementById('freqActiveLabel');
-          if (activeLabel) {
-            activeLabel.textContent = dominant.config.label;
-            activeLabel.style.color = dominant.config.glowHex;
-            activeLabel.classList.add('visible');
-          }
         }
         
         // Update harmonic cascade visualization
@@ -544,8 +536,6 @@ class ResonanceApp {
         // Hide frequency display
         if (!this.frequencyMapper.isAnyActive(0.1)) {
           this.frequencyDisplay?.hide();
-          const activeLabel = document.getElementById('freqActiveLabel');
-          if (activeLabel) activeLabel.classList.remove('visible');
         }
         
         // Reset ambient effects

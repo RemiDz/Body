@@ -33,7 +33,7 @@ export class FrequencyReference {
     this.overlay = document.createElement('div');
     this.overlay.className = 'freq-reference-overlay';
 
-    const rows = Object.entries(this.regions).map(([, cfg]) => {
+    const rows = Object.entries(this.regions).reverse().map(([, cfg]) => {
       return `<div class="freq-ref-row">
         <span class="freq-ref-color" style="background:${cfg.colorHex}"></span>
         <span class="freq-ref-label">${cfg.label}</span>
