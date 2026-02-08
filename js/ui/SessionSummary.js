@@ -16,8 +16,8 @@ export class SessionSummary {
     const secs = Math.floor((dur % 60000) / 1000);
     const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
 
-    // Fixed chakra order: root (bottom) to crown (top)
-    const regionOrder = ['root', 'sacral', 'solar', 'heart', 'throat', 'thirdEye', 'crown'];
+    // Fixed chakra order: crown (top) to root (bottom) matching body layout
+    const regionOrder = ['crown', 'thirdEye', 'throat', 'heart', 'solar', 'sacral', 'root'];
     const ordered = regionOrder
       .filter(name => summary.regions[name])
       .map(name => [name, summary.regions[name]]);
