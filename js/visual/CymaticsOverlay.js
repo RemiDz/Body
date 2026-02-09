@@ -84,7 +84,8 @@ export class CymaticsOverlay {
     this.ctx = this.canvas.getContext('2d');
     this.resize();
     
-    window.addEventListener('resize', () => this.resize());
+    this._resizeHandler = () => this.resize();
+    window.addEventListener('resize', this._resizeHandler);
     
     return true;
   }
@@ -313,6 +314,10 @@ export class CymaticsOverlay {
   }
   
   destroy() {
+    if (this._resizeHandler) {
+      window.removeEventListener('resize', this._resizeHandler);
+      this._resizeHandler = null;
+    }
     if (this.canvas && this.canvas.parentElement) {
       this.canvas.parentElement.removeChild(this.canvas);
     }

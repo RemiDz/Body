@@ -38,7 +38,8 @@ export class HarmonicLines {
     this.svg.appendChild(this.pathsGroup);
 
     // Invalidate position cache on resize
-    window.addEventListener('resize', () => this.clearCache());
+    this._resizeHandler = () => this.clearCache();
+    window.addEventListener('resize', this._resizeHandler);
   }
   
   /**
@@ -287,6 +288,10 @@ export class HarmonicLines {
    * Destroy and clean up
    */
   destroy() {
+    if (this._resizeHandler) {
+      window.removeEventListener('resize', this._resizeHandler);
+      this._resizeHandler = null;
+    }
     if (this.svg && this.svg.parentNode) {
       this.svg.parentNode.removeChild(this.svg);
     }

@@ -27,6 +27,7 @@ import { Screenshot } from './ui/Screenshot.js';
 import { FrequencyReference } from './ui/FrequencyReference.js';
 import { InstrumentGuide } from './ui/InstrumentGuide.js';
 import { AudioFileInput } from './ui/AudioFileInput.js';
+import { syncThemeColors } from './utils/ThemeManager.js';
 
 class ResonanceApp {
   constructor() {
@@ -98,6 +99,9 @@ class ResonanceApp {
       
       this.isInitialized = true;
       console.log('Initialization complete');
+      
+      // Sync theme colors in case a saved theme was restored
+      syncThemeColors();
       
     } catch (error) {
       console.error('Initialization error:', error);
@@ -453,7 +457,8 @@ class ResonanceApp {
             audioData.dominantFrequency,
             dominant.intensity,
             dominant.config.glowHex,
-            dominant.config.label
+            dominant.config.label,
+            deltaTime
           );
         }
         
@@ -627,6 +632,9 @@ class ResonanceApp {
     if (theme && theme !== 'default') {
       body.classList.add(`theme-${theme}`);
     }
+    // Sync CSS custom property colors back into JS FREQUENCY_REGIONS
+    // Use rAF to ensure computed styles have updated after class change
+    requestAnimationFrame(() => syncThemeColors());
   }
   
   /**

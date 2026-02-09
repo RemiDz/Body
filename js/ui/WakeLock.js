@@ -9,10 +9,12 @@ export class WakeLock {
     this.wakeLock = null;
     this.isSupported = 'wakeLock' in navigator;
     this.isActive = false;
+    this._released = false; // Track explicit release to prevent re-acquire race
   }
 
   async acquire() {
     if (!this.isSupported) return false;
+    this._released = false;
 
     try {
       this.wakeLock = await navigator.wakeLock.request('screen');
@@ -34,6 +36,7 @@ export class WakeLock {
   }
 
   async release() {
+    this._released = true;
     document.removeEventListener('visibilitychange', this._onVisibilityChange);
 
     if (this.wakeLock) {
@@ -46,7 +49,7 @@ export class WakeLock {
   }
 
   _onVisibilityChange = async () => {
-    if (document.visibilityState === 'visible' && !this.isActive) {
+    if (document.visibilityState === 'visible' && !this.isActive && !this._released) {
       await this.acquire();
     }
   };

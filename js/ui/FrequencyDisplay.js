@@ -89,8 +89,9 @@ export class FrequencyDisplay {
    * @param {number} amplitude - Signal amplitude (0-1)
    * @param {string} color - Color hex for display
    * @param {string} regionLabel - Optional region label
+   * @param {number} deltaTime - Time since last frame in ms
    */
-  update(frequency, amplitude, color = null, regionLabel = null) {
+  update(frequency, amplitude, color = null, regionLabel = null, deltaTime = 16.67) {
     // Smooth frequency for display
     const smoothedFreq = this.frequencySmoother.add(frequency);
     
@@ -127,7 +128,7 @@ export class FrequencyDisplay {
       }
       
       // Animate number transition
-      this.animateNumber();
+      this.animateNumber(deltaTime);
     } else {
       // Hide region label and note
       if (this.regionElement) {
@@ -191,20 +192,21 @@ export class FrequencyDisplay {
   
   /**
    * Animate the displayed number towards current frequency
+   * @param {number} deltaTime - Time since last frame in ms
    */
-  animateNumber() {
+  animateNumber(deltaTime = 16.67) {
     const target = Math.round(this.currentFrequency);
     const current = this.displayedFrequency;
     
-    // Smooth interpolation
+    // Smooth interpolation (time-based: ~200ms to reach target)
     const diff = target - current;
     
     if (Math.abs(diff) < 1) {
       this.displayedFrequency = target;
     } else {
-      // Faster interpolation for larger differences
-      const speed = Math.min(Math.abs(diff) * 0.2, 50);
-      this.displayedFrequency = current + Math.sign(diff) * speed;
+      // Time-based interpolation: approach rate of ~10/sec
+      const rate = 1 - Math.exp(-10 * (deltaTime / 1000));
+      this.displayedFrequency = current + diff * rate;
     }
     
     // Update DOM

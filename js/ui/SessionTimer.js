@@ -27,6 +27,11 @@ export class SessionTimer {
   }
 
   start() {
+    // Defensively clear any existing interval
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
     this.startTime = performance.now();
     this.isRunning = true;
     this.element.style.opacity = '1';

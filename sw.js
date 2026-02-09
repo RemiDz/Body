@@ -3,7 +3,7 @@
  * Offline caching that works on GitHub Pages (repo sub-path) and any hosted scope.
  */
 
-const CACHE_NAME = 'resonance-v1.5.6';
+const CACHE_NAME = 'resonance-v1.5.7';
 
 // Build fully-qualified URLs relative to the SW registration scope.
 const toScopeUrl = (path) => new URL(path, self.registration.scope).toString();
@@ -42,6 +42,7 @@ const ASSETS = [
   'js/ui/AudioFileInput.js',
   'js/utils/easing.js',
   'js/utils/math.js',
+  'js/utils/ThemeManager.js',
   'assets/body.svg',
   'assets/icon.svg'
 ].map(toScopeUrl);
@@ -86,7 +87,7 @@ self.addEventListener('fetch', (event) => {
             if (event.request.destination === 'document') {
               return caches.match(toScopeUrl('index.html'));
             }
-            return null;
+            return new Response('', { status: 503, statusText: 'Service Unavailable' });
           });
       })
   );

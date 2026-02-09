@@ -88,6 +88,11 @@ export class SpectrumArc {
     const centerX = this.container.offsetWidth / 2;
     const positions = this.regionYPositions;
     
+    // If positions aren't cached yet, return empty
+    if (!positions.root && !positions.crown) {
+      return { right: [], left: [] };
+    }
+
     // Right side arc points (from bottom to top)
     const rightPoints = [
       { x: centerX + 45, y: positions.root || 0 },
@@ -97,7 +102,7 @@ export class SpectrumArc {
       { x: centerX + 35, y: positions.throat || 0 },
       { x: centerX + 30, y: positions.thirdEye || 0 },
       { x: centerX + 25, y: positions.crown || 0 }
-    ];
+    ].filter(p => p.y > 0);
     
     // Left side mirrors the right
     const leftPoints = rightPoints.map(p => ({
@@ -112,6 +117,11 @@ export class SpectrumArc {
    * Create path elements for the arcs
    */
   createPaths() {
+    // Clear any existing children (prevents duplicate defs on reconstruction)
+    while (this.svg.firstChild) {
+      this.svg.removeChild(this.svg.firstChild);
+    }
+
     // Create gradient
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
     const gradient = this.createGradient();

@@ -217,17 +217,20 @@ export class AudioAnalyzer {
         await this.audioContext.resume();
       }
       
-      // Disconnect previous source if any
+      // Disconnect previous source and gain if any
       if (this.source) {
-        this.source.disconnect();
+        try { this.source.disconnect(); } catch (_) {}
+        this.source = null;
+      }
+      if (this.gainNode) {
+        try { this.gainNode.disconnect(); } catch (_) {}
+        this.gainNode = null;
       }
       
       this.source = this.audioContext.createMediaElementSource(audioElement);
       
-      if (!this.gainNode) {
-        this.gainNode = this.audioContext.createGain();
-        this.gainNode.gain.value = 1.0;
-      }
+      this.gainNode = this.audioContext.createGain();
+      this.gainNode.gain.value = 1.0;
       
       if (!this.analyser) {
         this.analyser = this.audioContext.createAnalyser();

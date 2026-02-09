@@ -75,8 +75,9 @@ export class HarmonicCascade {
     this.ctx = this.canvas.getContext('2d');
     this.resize();
     
-    // Handle resize
-    window.addEventListener('resize', () => this.resize());
+    // Handle resize (stored reference for cleanup)
+    this._resizeHandler = () => this.resize();
+    window.addEventListener('resize', this._resizeHandler);
     
     return true;
   }
@@ -347,6 +348,10 @@ export class HarmonicCascade {
    * Clean up resources
    */
   destroy() {
+    if (this._resizeHandler) {
+      window.removeEventListener('resize', this._resizeHandler);
+      this._resizeHandler = null;
+    }
     if (this.canvas && this.canvas.parentElement) {
       this.canvas.parentElement.removeChild(this.canvas);
     }
