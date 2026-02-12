@@ -340,18 +340,18 @@ export class ParticleSystem {
         
         if (targetIntensity > 0.1) {
           const targetCenter = this.regionCenters?.[targetRegion];
-          if (!targetCenter) continue;
-          
-          const gravitateForce = particle.gravitateStrength * targetIntensity;
-          
-          // Gently pull toward target chakra center
-          const dx = targetCenter.x - x;
-          const dy = targetCenter.y - y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          
-          if (distance > 5) {
-            x += (dx / distance) * gravitateForce * 2;
-            y += (dy / distance) * gravitateForce * 2;
+          if (targetCenter) {
+            const gravitateForce = particle.gravitateStrength * targetIntensity;
+            
+            // Gently pull toward target chakra center
+            const dx = targetCenter.x - x;
+            const dy = targetCenter.y - y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 5) {
+              x += (dx / distance) * gravitateForce * 2;
+              y += (dy / distance) * gravitateForce * 2;
+            }
           }
         }
       }

@@ -306,6 +306,10 @@ export class AudioAnalyzer {
     // Get frequency data
     this.analyser.getFloatFrequencyData(this.frequencyData);
     
+    // Get time-domain data BEFORE any code that depends on it
+    // (estimateFundamental uses calculateRMS for onset detection)
+    this.analyser.getFloatTimeDomainData(this.timeData);
+    
     // Calculate bin size for frequency mapping
     const sampleRate = this.audioContext.sampleRate;
     const binSize = sampleRate / this.analyser.fftSize;
@@ -314,7 +318,6 @@ export class AudioAnalyzer {
     const peaks = this.findPeaks(binSize);
     
     // Calculate RMS level for overall activity detection
-    this.analyser.getFloatTimeDomainData(this.timeData);
     const rmsLevel = this.calculateRMS();
     
     // Determine dominant frequency using improved fundamental estimation

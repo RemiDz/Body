@@ -319,6 +319,12 @@ export class BodyRenderer {
     
     this.isIdleAnimating = false;
     this.container.classList.remove('idle-breathing');
+    
+    // Reset energy layer opacity that was set by startIdleAnimation
+    // so it doesn't interfere with active visualization
+    if (this.energyLayer) {
+      this.energyLayer.style.opacity = '';
+    }
   }
   
   /**

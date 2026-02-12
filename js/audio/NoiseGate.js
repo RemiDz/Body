@@ -243,6 +243,11 @@ export class NoiseGate {
    * Reset gate state
    */
   reset() {
+    // Cancel any in-progress calibration to avoid dangling Promises
+    if (this.isCalibrating) {
+      this.cancelCalibration();
+    }
+    
     this.isOpen = false;
     this.gateOpenedTime = 0;
     this.lastAboveThresholdTime = 0;
