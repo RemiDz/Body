@@ -232,7 +232,7 @@ export const INSTRUMENT_REFERENCE = {
  */
 export function getRegionForFrequency(frequency) {
   for (const [regionName, config] of Object.entries(FREQUENCY_REGIONS)) {
-    if (frequency >= config.min && frequency < config.max) {
+    if (frequency >= config.min && frequency <= config.max) { // Include upper bound (#36)
       return { name: regionName, config };
     }
   }
@@ -253,9 +253,25 @@ export function getColorForFrequency(frequency) {
  */
 export function getAffectedRegions(frequency) {
   const affected = [];
+  // Primary region
   for (const [regionName, config] of Object.entries(FREQUENCY_REGIONS)) {
-    if (frequency >= config.min && frequency < config.max) {
+    if (frequency >= config.min && frequency <= config.max) {
       affected.push({ name: regionName, config, isPrimary: true });
+      break; // only one primary
+    }
+  }
+  // Harmonic regions (#21) - check integer multiples of the frequency
+  const harmonics = [2, 3, 4, 5, 6];
+  for (const h of harmonics) {
+    const hFreq = frequency * h;
+    for (const [regionName, config] of Object.entries(FREQUENCY_REGIONS)) {
+      if (hFreq >= config.min && hFreq <= config.max) {
+        // Avoid duplicates
+        if (!affected.some(a => a.name === regionName)) {
+          affected.push({ name: regionName, config, isPrimary: false, harmonic: h });
+        }
+        break;
+      }
     }
   }
   return affected;

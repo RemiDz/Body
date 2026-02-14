@@ -267,8 +267,12 @@ export class FrequencyMapper {
       return null;
     }
     
-    // Update history
+    // Update history (prune eagerly to prevent unbounded growth - #30)
     this.dominantHistory.push({ region: dominant, time: now, intensity: maxIntensity });
+    // Hard cap to prevent growth between getter calls
+    if (this.dominantHistory.length > 60) {
+      this.dominantHistory = this.dominantHistory.slice(-30);
+    }
     this.dominantHistory = this.dominantHistory.filter(h => now - h.time < 500);
     
     // Count occurrences in history
@@ -397,6 +401,7 @@ export class FrequencyMapper {
    * Set decay rate
    */
   setDecayRate(rate) {
-    this.config.glowDecayRate = clamp(rate, 0.5, 0.99);
+    // Fix: set decayTime (what update() reads) not glowDecayRate (#16)
+    this.config.decayTime = clamp(rate, 50, 2000);
   }
 }

@@ -16,6 +16,12 @@ export class WakeLock {
     if (!this.isSupported) return false;
     this._released = false;
 
+    // Release existing sentinel before acquiring new one (#35)
+    if (this.wakeLock) {
+      try { await this.wakeLock.release(); } catch (_) {}
+      this.wakeLock = null;
+    }
+
     try {
       this.wakeLock = await navigator.wakeLock.request('screen');
       this.isActive = true;

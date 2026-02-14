@@ -36,6 +36,9 @@ export class Controls {
     this.onRecord = null;
     this.onSettingsChange = null;
     
+    // Track all event listeners for cleanup (#6, #7)
+    this._listeners = [];
+    
     // Bind event handlers
     this.bindEvents();
     
@@ -49,26 +52,27 @@ export class Controls {
    * is set (which we have on html,body). So a plain click listener is reliable.
    * We only add visual feedback via touchstart/touchend.
    */
+  /**
+   * Track a listener so it can be removed on destroy (#6)
+   */
+  _track(element, event, handler, options) {
+    element.addEventListener(event, handler, options);
+    this._listeners.push({ element, event, handler, options });
+  }
+  
   addTapHandler(element, handler) {
     if (!element) return;
 
     // Visual feedback on touch
-    element.addEventListener('touchstart', () => {
-      element.classList.add('btn-pressed');
-    }, { passive: true });
+    const onTouchStart = () => element.classList.add('btn-pressed');
+    const onTouchEnd = () => element.classList.remove('btn-pressed');
+    const onTouchCancel = () => element.classList.remove('btn-pressed');
+    const onClick = (e) => handler(e);
     
-    element.addEventListener('touchend', () => {
-      element.classList.remove('btn-pressed');
-    }, { passive: true });
-    
-    element.addEventListener('touchcancel', () => {
-      element.classList.remove('btn-pressed');
-    }, { passive: true });
-    
-    // Single click handler — works on both desktop and iOS
-    element.addEventListener('click', (e) => {
-      handler(e);
-    });
+    this._track(element, 'touchstart', onTouchStart, { passive: true });
+    this._track(element, 'touchend', onTouchEnd, { passive: true });
+    this._track(element, 'touchcancel', onTouchCancel, { passive: true });
+    this._track(element, 'click', onClick);
   }
   
   /**
@@ -94,7 +98,7 @@ export class Controls {
     
     // Welcome overlay - dismiss on background tap
     if (this.welcomeOverlay) {
-      this.welcomeOverlay.addEventListener('click', (e) => {
+      this._track(this.welcomeOverlay, 'click', (e) => {
         if (e.target === this.welcomeOverlay) {
           this.handleStart();
         }
@@ -106,7 +110,7 @@ export class Controls {
     
     // Settings overlay click outside to close
     if (this.settingsOverlay) {
-      this.settingsOverlay.addEventListener('click', (e) => {
+      this._track(this.settingsOverlay, 'click', (e) => {
         if (e.target === this.settingsOverlay) {
           this.hideSettings();
         }
@@ -125,7 +129,7 @@ export class Controls {
     const gainSlider = document.getElementById('gainSlider');
     const gainValue = document.getElementById('gainValue');
     if (gainSlider && gainValue) {
-      gainSlider.addEventListener('input', (e) => {
+      this._track(gainSlider, 'input', (e) => {
         const value = parseFloat(e.target.value);
         gainValue.textContent = value.toFixed(1) + 'x';
         this.emitSettingsChange({ gain: value });
@@ -136,7 +140,7 @@ export class Controls {
     const noiseSlider = document.getElementById('noiseSlider');
     const noiseValue = document.getElementById('noiseValue');
     if (noiseSlider && noiseValue) {
-      noiseSlider.addEventListener('input', (e) => {
+      this._track(noiseSlider, 'input', (e) => {
         const value = parseInt(e.target.value);
         noiseValue.textContent = value + ' dB';
         this.emitSettingsChange({ noiseFloor: value });
@@ -147,7 +151,7 @@ export class Controls {
     const glowSlider = document.getElementById('glowSlider');
     const glowValue = document.getElementById('glowValue');
     if (glowSlider && glowValue) {
-      glowSlider.addEventListener('input', (e) => {
+      this._track(glowSlider, 'input', (e) => {
         const value = parseFloat(e.target.value);
         glowValue.textContent = value.toFixed(1) + 'x';
         this.emitSettingsChange({ glowIntensity: value });
@@ -251,7 +255,7 @@ export class Controls {
   bindToggle(elementId, callback) {
     const el = document.getElementById(elementId);
     if (!el) return;
-    el.addEventListener('change', () => {
+    this._track(el, 'change', () => {
       callback(el.checked);
     });
   }
@@ -268,8 +272,9 @@ export class Controls {
     
     this.addTapHandler(this.fullscreenBtn, () => this.toggleFullscreen());
     
-    document.addEventListener('fullscreenchange', () => this.onFullscreenChange());
-    document.addEventListener('webkitfullscreenchange', () => this.onFullscreenChange());
+    // Track document-level listeners for cleanup (#7)
+    this._track(document, 'fullscreenchange', () => this.onFullscreenChange());
+    this._track(document, 'webkitfullscreenchange', () => this.onFullscreenChange());
   }
   
   async toggleFullscreen() {
@@ -545,6 +550,12 @@ export class Controls {
   }
   
   destroy() {
+    // Remove all tracked event listeners (#6, #7)
+    for (const { element, event, handler, options } of this._listeners) {
+      element.removeEventListener(event, handler, options);
+    }
+    this._listeners = [];
+    
     this.onStart = null;
     this.onStop = null;
     this.onRecord = null;

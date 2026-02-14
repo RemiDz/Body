@@ -85,7 +85,8 @@ self.addEventListener('fetch', (event) => {
           .catch(() => {
             // Offline fallback for navigation
             if (event.request.destination === 'document') {
-              return caches.match(toScopeUrl('index.html'));
+              return caches.match(toScopeUrl('index.html'))
+                .then(cached => cached || new Response('Offline', { status: 503, statusText: 'Service Unavailable' }));
             }
             return new Response('', { status: 503, statusText: 'Service Unavailable' });
           });

@@ -123,12 +123,10 @@ export class AmbientEffects {
    * Pulse effect - brief intensity spike
    */
   pulse(amount = 0.5) {
+    // Spike intensity immediately; let the normal animate() loop
+    // smoothly decay back toward the current targetIntensity (#18)
     this.intensity = clamp(this.intensity + amount, 0, 1);
-    
-    // Auto-decay back to target
-    setTimeout(() => {
-      this.targetIntensity = 0;
-    }, 100);
+    // Do NOT reset targetIntensity — that clobbers externally-set values
   }
   
   /**

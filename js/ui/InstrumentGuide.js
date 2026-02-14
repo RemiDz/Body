@@ -122,7 +122,7 @@ export class InstrumentGuide {
     this.isVisible = true;
 
     this.overlay.querySelector('.guide-close-btn')
-      .addEventListener('click', () => this.hide());
+      ?.addEventListener('click', () => this.hide());
 
     // Close on background tap
     this.overlay.addEventListener('click', (e) => {

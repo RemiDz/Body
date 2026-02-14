@@ -140,11 +140,16 @@ class ResonanceApp {
     // Frequency reference & tuner
     this.frequencyReference = new FrequencyReference();
     
+    // Track UI button listeners for cleanup (#10)
+    this._uiListeners = [];
+    
     // Instrument guide
     this.instrumentGuide = new InstrumentGuide();
     const instrumentGuideBtn = document.getElementById('instrumentGuideBtn');
     if (instrumentGuideBtn) {
-      instrumentGuideBtn.addEventListener('click', () => this.instrumentGuide.toggle());
+      const handler = () => this.instrumentGuide.toggle();
+      instrumentGuideBtn.addEventListener('click', handler);
+      this._uiListeners.push({ el: instrumentGuideBtn, event: 'click', handler });
     }
     
     // Audio file input
@@ -152,13 +157,17 @@ class ResonanceApp {
     this.audioFileInput.onFileReady = (audioEl, fileName) => this.startFilePlayback(audioEl, fileName);
     const audioFileBtn = document.getElementById('audioFileBtn');
     if (audioFileBtn) {
-      audioFileBtn.addEventListener('click', () => this.audioFileInput.open());
+      const handler = () => this.audioFileInput.open();
+      audioFileBtn.addEventListener('click', handler);
+      this._uiListeners.push({ el: audioFileBtn, event: 'click', handler });
     }
     
     // Screenshot button
     const screenshotBtn = document.getElementById('screenshotBtn');
     if (screenshotBtn) {
-      screenshotBtn.addEventListener('click', () => Screenshot.capture());
+      const handler = () => Screenshot.capture();
+      screenshotBtn.addEventListener('click', handler);
+      this._uiListeners.push({ el: screenshotBtn, event: 'click', handler });
     }
     
     // Show welcome if configured, otherwise hide it
@@ -345,7 +354,7 @@ class ResonanceApp {
   /**
    * Stop audio analysis and visualization
    */
-  stop() {
+  async stop() {
     this.isRunning = false;
     
     if (this.animationFrame) {
@@ -370,9 +379,9 @@ class ResonanceApp {
       }
     }
     
-    // Clean up audio
+    // Clean up audio (await close to avoid race condition on re-init - #11)
     if (this.audioAnalyzer) {
-      this.audioAnalyzer.destroy();
+      await this.audioAnalyzer.destroy();
       this.audioAnalyzer = null;
     }
     
@@ -570,9 +579,9 @@ class ResonanceApp {
    * Start visualization from an audio file
    */
   async startFilePlayback(audioElement, fileName) {
-    // Stop any current session
+    // Stop any current session and await AudioContext close (#11)
     if (this.isRunning) {
-      this.stop();
+      await this.stop();
     }
     
     try {
@@ -605,8 +614,8 @@ class ResonanceApp {
       this.wakeLock?.acquire();
       this.sessionTimer?.start();
       
-      // Start playback
-      audioElement.play();
+      // Start playback - await to handle autoplay failures (#12)
+      await audioElement.play();
       
       // Stop when audio ends
       audioElement.addEventListener('ended', () => {
@@ -862,8 +871,21 @@ class ResonanceApp {
   /**
    * Destroy and clean up
    */
-  destroy() {
-    this.stop();
+  async destroy() {
+    await this.stop();
+    
+    // Remove module-level listeners
+    if (this._removeModuleListeners) {
+      this._removeModuleListeners();
+    }
+    
+    // Clean up UI button listeners (#10)
+    if (this._uiListeners) {
+      for (const { el, event, handler } of this._uiListeners) {
+        el.removeEventListener(event, handler);
+      }
+      this._uiListeners = [];
+    }
     
     this.bodyRenderer?.destroy();
     this.particleSystem?.destroy();
@@ -879,6 +901,11 @@ class ResonanceApp {
     this.instrumentGuide?.destroy();
     this.audioFileInput?.destroy();
     this.sessionSummary?.remove();
+    // Missing destroy calls (#9)
+    this.frequencyDisplay?.destroy?.();
+    this.sessionRecorder?.stop?.();
+    this.calibration?.destroy?.();
+    this.wakeLock?.release?.();
     
     this.audioAnalyzer = null;
     this.frequencyMapper = null;
@@ -914,15 +941,20 @@ const app = new ResonanceApp();
 // Expose to window for debugging
 window.resonanceApp = app;
 
+// --- Module-level event listeners (stored for cleanup - #8) ---
+const _moduleListeners = [];
+function _addModuleListener(target, event, handler, options) {
+  target.addEventListener(event, handler, options);
+  _moduleListeners.push({ target, event, handler, options });
+}
+
 // Handle visibility change (pause when hidden)
-document.addEventListener('visibilitychange', () => {
+_addModuleListener(document, 'visibilitychange', () => {
   if (document.hidden) {
-    // Pause analysis when tab is hidden
     if (app.isRunning) {
       app.audioAnalyzer?.suspend();
     }
   } else {
-    // Resume when visible
     if (app.isRunning) {
       app.audioAnalyzer?.resume();
     }
@@ -931,7 +963,7 @@ document.addEventListener('visibilitychange', () => {
 
 // Handle resize (recache bounds)
 let resizeTimeout;
-window.addEventListener('resize', () => {
+_addModuleListener(window, 'resize', () => {
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
     app.cacheRegionBounds();
@@ -942,11 +974,12 @@ window.addEventListener('resize', () => {
 });
 
 // Prevent context menu
-document.addEventListener('contextmenu', (e) => e.preventDefault());
+const _preventContextMenu = (e) => e.preventDefault();
+_addModuleListener(document, 'contextmenu', _preventContextMenu);
 
 // Prevent zooming on double tap
 let lastTouchEnd = 0;
-document.addEventListener('touchend', (e) => {
+_addModuleListener(document, 'touchend', (e) => {
   const now = Date.now();
   if (now - lastTouchEnd <= 300) {
     e.preventDefault();
@@ -955,7 +988,6 @@ document.addEventListener('touchend', (e) => {
 }, { passive: false });
 
 // iOS Safari: Resume audio context on any touch/click
-// This is critical for iOS which suspends audio contexts aggressively
 const resumeAudioContext = () => {
   if (app.audioAnalyzer?.audioContext?.state === 'suspended') {
     app.audioAnalyzer.audioContext.resume().then(() => {
@@ -964,8 +996,16 @@ const resumeAudioContext = () => {
   }
 };
 
-document.addEventListener('touchstart', resumeAudioContext, { passive: true });
-document.addEventListener('touchend', resumeAudioContext, { passive: true });
-document.addEventListener('click', resumeAudioContext);
+_addModuleListener(document, 'touchstart', resumeAudioContext, { passive: true });
+_addModuleListener(document, 'touchend', resumeAudioContext, { passive: true });
+_addModuleListener(document, 'click', resumeAudioContext);
+
+// Expose cleanup for module-level listeners
+app._removeModuleListeners = () => {
+  for (const { target, event, handler, options } of _moduleListeners) {
+    target.removeEventListener(event, handler, options);
+  }
+  _moduleListeners.length = 0;
+};
 
 export default app;

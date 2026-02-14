@@ -11,20 +11,20 @@ export class HarmonicLines {
    * @param {string} containerSelector - CSS selector for container element
    */
   constructor(containerSelector) {
+    // Initialize all properties first to prevent broken state (#23)
+    this.regions = FREQUENCY_REGIONS;
+    this.regionOrder = ['root', 'sacral', 'solar', 'heart', 'throat', 'thirdEye', 'crown'];
+    this.regionYCache = {};
+    this.svg = null;
+    this.defs = null;
+    this.pathsGroup = null;
+    this._resizeHandler = null;
+    
     this.container = document.querySelector(containerSelector);
     if (!this.container) {
       console.error(`HarmonicLines: Container not found: ${containerSelector}`);
       return;
     }
-    
-    // Store reference to frequency regions config
-    this.regions = FREQUENCY_REGIONS;
-    
-    // Region order for fundamental detection
-    this.regionOrder = ['root', 'sacral', 'solar', 'heart', 'throat', 'thirdEye', 'crown'];
-    
-    // Cache for region Y positions
-    this.regionYCache = {};
     
     // Create SVG element
     this.svg = this.createSVG();
@@ -67,6 +67,7 @@ export class HarmonicLines {
    * @param {Object} glowStates - Glow state data from GlowEngine
    */
   update(harmonicContributions, intensities, glowStates) {
+    if (!this.container || !this.pathsGroup) return; // Guard if constructor failed
     // Clear previous lines
     this.clear();
     
@@ -267,6 +268,7 @@ export class HarmonicLines {
    * Clear all path elements and gradients
    */
   clear() {
+    if (!this.pathsGroup || !this.defs) return; // Guard if constructor failed
     // Remove all paths
     while (this.pathsGroup.firstChild) {
       this.pathsGroup.removeChild(this.pathsGroup.firstChild);

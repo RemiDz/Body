@@ -37,6 +37,7 @@ export function mapRange(value, inMin, inMax, outMin, outMax) {
  * Smooth step - ease in/out
  */
 export function smoothstep(edge0, edge1, x) {
+  if (edge0 === edge1) return x <= edge0 ? 0 : 1; // Prevent division by zero
   const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
   return t * t * (3 - 2 * t);
 }
@@ -45,6 +46,7 @@ export function smoothstep(edge0, edge1, x) {
  * Smoother step - even smoother transition
  */
 export function smootherstep(edge0, edge1, x) {
+  if (edge0 === edge1) return x <= edge0 ? 0 : 1; // Prevent division by zero
   const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
   return t * t * t * (t * (t * 6 - 15) + 10);
 }
@@ -115,6 +117,7 @@ export function linearToDb(linear) {
  * Normalize a value from dB range to 0-1
  */
 export function normalizeDb(db, minDb, maxDb) {
+  if (maxDb === minDb) return 0; // Prevent division by zero
   return clamp((db - minDb) / (maxDb - minDb), 0, 1);
 }
 

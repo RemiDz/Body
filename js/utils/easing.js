@@ -166,10 +166,11 @@ export function easeOutBack(t) {
 export function easeInOutBack(t) {
   const s = BACK_OVERSHOOT * 1.525;
   if (t < 0.5) {
-    return (t * t * (4 * (s + 1) * t - 2 * s)) / 2;
+    const t2 = 2 * t;
+    return (t2 * t2 * ((s + 1) * t2 - s)) / 2;
   }
-  const t1 = t - 1;
-  return (t1 * t1 * (4 * (s + 1) * t1 + 2 * s) + 2) / 2;
+  const t2 = 2 * t - 2;
+  return (t2 * t2 * ((s + 1) * t2 + s) + 2) / 2;
 }
 
 // ===== BOUNCE =====

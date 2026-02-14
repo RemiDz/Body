@@ -36,8 +36,7 @@ export class FrequencyDisplay {
     // Smoothing
     this.frequencySmoother = new MovingAverage(3);
     
-    // Animation
-    this.animationFrame = null;
+    // Animation (#38: animationFrame property removed - was declared but never used)
     this.lastUpdateTime = 0;
   }
   

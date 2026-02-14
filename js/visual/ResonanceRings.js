@@ -12,36 +12,20 @@ export class ResonanceRings {
    * @param {string} containerSelector - CSS selector for container element
    */
   constructor(containerSelector) {
-    this.container = document.querySelector(containerSelector);
-    if (!this.container) {
-      console.error(`ResonanceRings: Container not found: ${containerSelector}`);
-      return;
-    }
-    
-    // Store reference to frequency regions config
+    // Initialize all properties first to prevent broken state (#24)
     this.regions = FREQUENCY_REGIONS;
-    
-    // Cache for region center positions
     this.regionCenterCache = {};
-    
-    // Bloom configuration
     this.config = {
-      maxRadius: 45,           // Maximum bloom radius
-      minRadius: 2,            // Starting radius (dot)
-      bloomDuration: 1800,     // How long each bloom takes to expand (ms)
-      spawnInterval: 600,      // Time between spawning new blooms (ms)
-      maxBlooms: 3,            // Max concurrent blooms per region
-      strokeWidth: 1.5,        // Line thickness
-      maxOpacity: 0.4          // Peak opacity
+      maxRadius: 45,
+      minRadius: 2,
+      bloomDuration: 1800,
+      spawnInterval: 600,
+      maxBlooms: 3,
+      strokeWidth: 1.5,
+      maxOpacity: 0.4
     };
-    
-    // Create SVG element
-    this.svg = this.createSVG();
-    
-    // Track active blooms per region
+    this.svg = null;
     this.activeBlooms = {};
-    
-    // Track last spawn time per region
     this.lastSpawnTime = {};
     
     // Initialize for all regions
@@ -49,6 +33,15 @@ export class ResonanceRings {
       this.activeBlooms[regionName] = [];
       this.lastSpawnTime[regionName] = 0;
     }
+    
+    this.container = document.querySelector(containerSelector);
+    if (!this.container) {
+      console.error(`ResonanceRings: Container not found: ${containerSelector}`);
+      return;
+    }
+    
+    // Create SVG element
+    this.svg = this.createSVG();
 
     // Invalidate position cache on resize
     this._resizeHandler = () => this.clearCache();

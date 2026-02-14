@@ -45,6 +45,9 @@ export class ParticleSystem {
     this.dominantFrequency = 0;
     this.pulsePhase = 0;
     
+    // Track burst timeouts for cleanup (#17)
+    this._burstTimeouts = [];
+    
     // Initialize spawn timers for each region
     for (const regionName of Object.keys(this.regions)) {
       this.lastSpawnTime[regionName] = 0;
@@ -413,12 +416,15 @@ export class ParticleSystem {
     if (!bounds) return;
     
     for (let i = 0; i < count; i++) {
-      // Delay each particle slightly
-      setTimeout(() => {
+      // Delay each particle slightly - track for cleanup (#17)
+      const id = setTimeout(() => {
+        // Remove from tracking array
+        this._burstTimeouts = this._burstTimeouts.filter(t => t !== id);
         if (this.isEnabled) {
           this.maybeSpawnParticle(regionName, 1.0, { [regionName]: bounds }, performance.now());
         }
       }, i * 50);
+      this._burstTimeouts.push(id);
     }
   }
   
@@ -474,6 +480,12 @@ export class ParticleSystem {
    */
   destroy() {
     this.clear();
+    
+    // Cancel pending burst timeouts (#17)
+    for (const id of this._burstTimeouts) {
+      clearTimeout(id);
+    }
+    this._burstTimeouts = [];
     
     for (const particle of this.pool) {
       if (particle.element.parentNode) {

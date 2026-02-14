@@ -35,11 +35,13 @@ export class SessionRecorder {
   start() {
     this.reset();
     this.startTime = performance.now();
+    this.stopTime = 0;
     this.isRecording = true;
   }
 
   stop() {
     this.isRecording = false;
+    this.stopTime = performance.now(); // Record actual stop time (#19)
   }
 
   /**
@@ -80,7 +82,9 @@ export class SessionRecorder {
    * Get session summary data
    */
   getSummary() {
-    const totalTime = performance.now() - this.startTime;
+    // Use recorded stop time if available, otherwise now (#19)
+    const endTime = this.stopTime || performance.now();
+    const totalTime = endTime - this.startTime;
     const regionNames = Object.keys(this.regions);
 
     // Calculate percentages

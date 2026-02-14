@@ -134,7 +134,7 @@ export class BodyRenderer {
     // Cache spine node elements (chakra center points)
     const regionNames = ['crown', 'thirdEye', 'throat', 'heart', 'solar', 'sacral', 'root'];
     for (const regionName of regionNames) {
-      const nodeId = `spine-node-${regionName.toLowerCase().replace('eye', 'eye')}`;
+      const nodeId = `spine-node-${regionName.toLowerCase()}`; // Fix dead .replace() (#28)
       const element = this.svgElement.querySelector(`#${nodeId}`);
       if (element) {
         this.spineNodeElements[regionName] = element;
@@ -452,6 +452,9 @@ export class BodyRenderer {
     this.organsLayer = null;
     this.energyElements = {};
     this.organElements = {};
+    // Clear spine caches (#27)
+    this.spineLineElements = {};
+    this.spineNodeElements = {};
     this.isLoaded = false;
   }
 }

@@ -12,36 +12,38 @@ export class SpectrumArc {
    * @param {Object} audioAnalyzer - AudioAnalyzer instance for accessing frequency data
    */
   constructor(containerSelector, audioAnalyzer) {
+    // Initialize all properties first to prevent broken state (#25)
+    this.audioAnalyzer = audioAnalyzer;
+    this.regions = FREQUENCY_REGIONS;
+    this.audioConfig = AUDIO_CONFIG;
+    this.numBands = 64;
+    this.smoothedData = new Array(this.numBands).fill(0);
+    this.smoothingFactor = 0.85;
+    this.baseThickness = 8;
+    this.arcOffset = 15;
+    this.svg = null;
+    this.rightPath = null;
+    this.leftPath = null;
+    this.regionYPositions = {};
+    
     this.container = document.querySelector(containerSelector);
     if (!this.container) {
       console.error(`SpectrumArc: Container not found: ${containerSelector}`);
       return;
     }
     
-    this.audioAnalyzer = audioAnalyzer;
-    this.regions = FREQUENCY_REGIONS;
-    this.audioConfig = AUDIO_CONFIG;
-    
-    // Smoothed frequency data (64 bands)
-    this.numBands = 64;
-    this.smoothedData = new Array(this.numBands).fill(0);
-    this.smoothingFactor = 0.85;
-    
-    // Arc configuration
-    this.baseThickness = 8;
-    this.arcOffset = 15; // pixels outward from body edge
-    
     // Create SVG element
     this.svg = this.createSVG();
     
     // Create paths
-    this.rightPath = null;
-    this.leftPath = null;
     this.createPaths();
     
     // Cache region Y positions
-    this.regionYPositions = {};
     this.cacheRegionPositions();
+    
+    // Listen for resize to invalidate cached positions (#22)
+    this._resizeHandler = () => this.clearCache();
+    window.addEventListener('resize', this._resizeHandler);
   }
   
   /**
@@ -89,20 +91,21 @@ export class SpectrumArc {
     const positions = this.regionYPositions;
     
     // If positions aren't cached yet, return empty
-    if (!positions.root && !positions.crown) {
+    if (Object.keys(positions).length === 0) {
       return { right: [], left: [] };
     }
 
     // Right side arc points (from bottom to top)
+    // Only include points for regions that have been cached
     const rightPoints = [
-      { x: centerX + 45, y: positions.root || 0 },
-      { x: centerX + 50, y: positions.sacral || 0 },
-      { x: centerX + 55, y: positions.solar || 0 },
-      { x: centerX + 50, y: positions.heart || 0 },
-      { x: centerX + 35, y: positions.throat || 0 },
-      { x: centerX + 30, y: positions.thirdEye || 0 },
-      { x: centerX + 25, y: positions.crown || 0 }
-    ].filter(p => p.y > 0);
+      { x: centerX + 45, y: positions.root, region: 'root' },
+      { x: centerX + 50, y: positions.sacral, region: 'sacral' },
+      { x: centerX + 55, y: positions.solar, region: 'solar' },
+      { x: centerX + 50, y: positions.heart, region: 'heart' },
+      { x: centerX + 35, y: positions.throat, region: 'throat' },
+      { x: centerX + 30, y: positions.thirdEye, region: 'thirdEye' },
+      { x: centerX + 25, y: positions.crown, region: 'crown' }
+    ].filter(p => p.y !== undefined && p.y !== null);
     
     // Left side mirrors the right
     const leftPoints = rightPoints.map(p => ({
@@ -204,6 +207,7 @@ export class SpectrumArc {
    * @param {Object} audioData - Audio analysis data
    */
   update(audioData) {
+    if (!this.container || !this.svg) return; // Guard if constructor failed
     if (!audioData || !audioData.isActive || !this.audioAnalyzer) {
       this.fadeOut();
       return;
@@ -372,6 +376,12 @@ export class SpectrumArc {
    */
   destroy() {
     this.clear();
+    
+    // Remove resize listener (#22)
+    if (this._resizeHandler) {
+      window.removeEventListener('resize', this._resizeHandler);
+      this._resizeHandler = null;
+    }
     
     if (this.svg && this.svg.parentNode) {
       this.svg.parentNode.removeChild(this.svg);

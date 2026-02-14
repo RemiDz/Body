@@ -360,8 +360,12 @@ export class Calibration {
       this.peakLevel = levelDb;
     }
     
-    // Slowly decay peak toward silence (subtract since dB values are negative)
-    this.peakLevel -= 0.05;
+    // Slowly decay peak toward silence
+    // Use time-based decay to be frame-rate independent
+    const now = performance.now();
+    const dt = this._lastUpdateTime ? (now - this._lastUpdateTime) / 16.67 : 1;
+    this._lastUpdateTime = now;
+    this.peakLevel = Math.max(this.peakLevel - 0.05 * dt, -100); // Lower bound (#32)
     
     // Process calibration sample if calibrating
     if (this.isCalibrating) {

@@ -44,9 +44,10 @@ export class AudioFileInput {
     this.audioElement.crossOrigin = 'anonymous';
     this.audioElement.loop = false;
 
-    this.audioElement.addEventListener('ended', () => {
+    this._endedHandler = () => {
       this.isPlaying = false;
-    });
+    };
+    this.audioElement.addEventListener('ended', this._endedHandler);
 
     if (this.onFileReady) {
       this.onFileReady(this.audioElement, file.name);
@@ -69,6 +70,11 @@ export class AudioFileInput {
 
   stop() {
     if (this.audioElement) {
+      // Remove ended listener to prevent leak
+      if (this._endedHandler) {
+        this.audioElement.removeEventListener('ended', this._endedHandler);
+        this._endedHandler = null;
+      }
       this.audioElement.pause();
       this.audioElement.currentTime = 0;
       this.isPlaying = false;

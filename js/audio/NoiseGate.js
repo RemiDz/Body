@@ -23,10 +23,12 @@ export class NoiseGate {
     this.levelSmoother = new MovingAverage(5);
     this.peakDetector = new PeakDetector(0.95);
     
-    // Noise floor estimation
+    // Noise floor estimation (ring buffer for O(1) insert - #31)
     this.noiseFloorEstimate = this.threshold;
-    this.noiseFloorSamples = [];
     this.noiseFloorWindowSize = 100;
+    this.noiseFloorSamples = new Float64Array(this.noiseFloorWindowSize);
+    this._nfWriteIdx = 0;
+    this._nfCount = 0;
     
     // Auto-calibration
     this.isCalibrating = false;
@@ -119,16 +121,16 @@ export class NoiseGate {
    * Update noise floor estimate
    */
   updateNoiseFloor(level) {
-    this.noiseFloorSamples.push(level);
+    // Ring buffer insert - O(1) (#31)
+    this.noiseFloorSamples[this._nfWriteIdx] = level;
+    this._nfWriteIdx = (this._nfWriteIdx + 1) % this.noiseFloorWindowSize;
+    if (this._nfCount < this.noiseFloorWindowSize) this._nfCount++;
     
-    if (this.noiseFloorSamples.length > this.noiseFloorWindowSize) {
-      this.noiseFloorSamples.shift();
-    }
-    
-    if (this.noiseFloorSamples.length >= 10) {
+    if (this._nfCount >= 10) {
       // Use median for robustness
-      const sorted = [...this.noiseFloorSamples].sort((a, b) => a - b);
-      const median = sorted[Math.floor(sorted.length / 2)];
+      const slice = Array.from(this.noiseFloorSamples.subarray(0, this._nfCount));
+      slice.sort((a, b) => a - b);
+      const median = slice[Math.floor(slice.length / 2)];
       
       // Smooth update to noise floor estimate
       this.noiseFloorEstimate = this.noiseFloorEstimate * 0.95 + median * 0.05;
@@ -140,12 +142,25 @@ export class NoiseGate {
    * Records ambient noise level for a period to set appropriate threshold
    */
   startCalibration() {
+    // Resolve any existing pending calibration Promise before starting a new one (#5)
+    if (this.calibrationResolve) {
+      this.calibrationResolve({ noiseFloor: this.noiseFloorEstimate, threshold: this.threshold, cancelled: true });
+      this.calibrationResolve = null;
+    }
+    
     this.isCalibrating = true;
     this.calibrationSamples = [];
     this.calibrationStartTime = performance.now();
     
     return new Promise((resolve) => {
       this.calibrationResolve = resolve;
+      
+      // Safety timeout to prevent hanging forever if animation loop stops (#4)
+      this._calibrationTimeout = setTimeout(() => {
+        if (this.isCalibrating) {
+          this.finishCalibration();
+        }
+      }, this.calibrationDuration + 1000);
     });
   }
   
@@ -154,6 +169,10 @@ export class NoiseGate {
    */
   finishCalibration() {
     this.isCalibrating = false;
+    if (this._calibrationTimeout) {
+      clearTimeout(this._calibrationTimeout);
+      this._calibrationTimeout = null;
+    }
     
     if (this.calibrationSamples.length > 0) {
       // Calculate statistics
@@ -190,6 +209,10 @@ export class NoiseGate {
   cancelCalibration() {
     this.isCalibrating = false;
     this.calibrationSamples = [];
+    if (this._calibrationTimeout) {
+      clearTimeout(this._calibrationTimeout);
+      this._calibrationTimeout = null;
+    }
     
     if (this.calibrationResolve) {
       this.calibrationResolve({ noiseFloor: this.noiseFloorEstimate, threshold: this.threshold, cancelled: true });

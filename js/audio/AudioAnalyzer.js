@@ -26,6 +26,13 @@ export class AudioAnalyzer {
     this.onError = null;
     this.onStateChange = null;
     
+    // Track bound listeners for cleanup (#13)
+    this._stateChangeHandler = null;
+    this._trackEndedHandler = null;
+    
+    // Track MediaElementSource to avoid InvalidStateError (#3)
+    this._mediaElementSourceMap = new WeakMap();
+    
     // Fundamental frequency tracking
     this.lastFundamental = 0;
     this.fundamentalConfidence = 0;
@@ -34,6 +41,11 @@ export class AudioAnalyzer {
     // Onset detection for transient reset
     this.prevRMS = 0;
     this.onsetThreshold = 3.0; // RMS ratio threshold for onset
+    
+    // Cache RMS per frame to avoid redundant calculation (#29)
+    this._cachedRMS = 0;
+    this._rmsFrameId = -1;
+    this._frameCounter = 0;
   }
   
   /**
@@ -91,10 +103,13 @@ export class AudioAnalyzer {
         console.log('AudioContext resumed, state:', this.audioContext.state);
       }
       
-      // Set up state change listener
-      this.audioContext.addEventListener('statechange', () => {
-        console.log('AudioContext state changed:', this.audioContext.state);
-      });
+      // Set up state change listener (store reference for cleanup - #13)
+      this._stateChangeHandler = () => {
+        if (this.audioContext) {
+          console.log('AudioContext state changed:', this.audioContext.state);
+        }
+      };
+      this.audioContext.addEventListener('statechange', this._stateChangeHandler);
       
       // Request microphone access with iOS-compatible constraints
       // iOS Safari: Simpler constraints work better
@@ -128,7 +143,7 @@ export class AudioAnalyzer {
       // Monitor for stream ending (iOS can kill tracks after prolonged background)
       const audioTrack = this.stream.getAudioTracks()[0];
       if (audioTrack) {
-        audioTrack.addEventListener('ended', () => {
+        this._trackEndedHandler = () => {
           console.warn('Audio track ended unexpectedly (iOS background kill?)');
           this.isActive = false;
           if (this.onError) {
@@ -137,7 +152,8 @@ export class AudioAnalyzer {
           if (this.onStateChange) {
             this.onStateChange('ended');
           }
-        });
+        };
+        audioTrack.addEventListener('ended', this._trackEndedHandler);
       }
       
       // Create source from microphone stream
@@ -178,6 +194,16 @@ export class AudioAnalyzer {
     } catch (error) {
       console.error('AudioAnalyzer init error:', error.name, error.message);
       
+      // Clean up resources on failure to prevent leaks (#2)
+      if (this.stream) {
+        this.stream.getTracks().forEach(track => track.stop());
+        this.stream = null;
+      }
+      if (this.audioContext) {
+        try { this.audioContext.close(); } catch (_) {}
+        this.audioContext = null;
+      }
+      
       // Create user-friendly error message
       let userError = error;
       
@@ -217,6 +243,12 @@ export class AudioAnalyzer {
         await this.audioContext.resume();
       }
       
+      // Stop mic stream if switching from mic to file playback
+      if (this.stream) {
+        this.stream.getTracks().forEach(track => track.stop());
+        this.stream = null;
+      }
+      
       // Disconnect previous source and gain if any
       if (this.source) {
         try { this.source.disconnect(); } catch (_) {}
@@ -227,7 +259,13 @@ export class AudioAnalyzer {
         this.gainNode = null;
       }
       
-      this.source = this.audioContext.createMediaElementSource(audioElement);
+      // Reuse existing MediaElementSource if the element was already bound (#3)
+      if (this._mediaElementSourceMap.has(audioElement)) {
+        this.source = this._mediaElementSourceMap.get(audioElement);
+      } else {
+        this.source = this.audioContext.createMediaElementSource(audioElement);
+        this._mediaElementSourceMap.set(audioElement, this.source);
+      }
       
       this.gainNode = this.audioContext.createGain();
       this.gainNode.gain.value = 1.0;
@@ -263,6 +301,7 @@ export class AudioAnalyzer {
    * Resume audio context (required after user gesture on iOS)
    */
   async resume() {
+    if (!this.isInitialized) return; // Guard against null dereference (#15)
     if (this.audioContext && this.audioContext.state === 'suspended') {
       await this.audioContext.resume();
     }
@@ -310,6 +349,11 @@ export class AudioAnalyzer {
     // (estimateFundamental uses calculateRMS for onset detection)
     this.analyser.getFloatTimeDomainData(this.timeData);
     
+    // Increment frame counter and pre-compute RMS once per frame (#29)
+    this._frameCounter++;
+    this._cachedRMS = this.calculateRMS();
+    this._rmsFrameId = this._frameCounter;
+    
     // Calculate bin size for frequency mapping
     const sampleRate = this.audioContext.sampleRate;
     const binSize = sampleRate / this.analyser.fftSize;
@@ -317,8 +361,8 @@ export class AudioAnalyzer {
     // Find peaks
     const peaks = this.findPeaks(binSize);
     
-    // Calculate RMS level for overall activity detection
-    const rmsLevel = this.calculateRMS();
+    // Use cached RMS level for overall activity detection
+    const rmsLevel = this._cachedRMS;
     
     // Determine dominant frequency using improved fundamental estimation
     // This reduces octave/harmonic jumps by preferring the base tone
@@ -355,8 +399,8 @@ export class AudioAnalyzer {
     
     const binSize = this.audioContext.sampleRate / this.analyser.fftSize;
     
-    // Onset detection: reset smoother on transients
-    const currentRMS = this.calculateRMS();
+    // Onset detection: reset smoother on transients (use cached RMS - #29)
+    const currentRMS = (this._rmsFrameId === this._frameCounter) ? this._cachedRMS : this.calculateRMS();
     const isOnset = this.prevRMS > 0 && currentRMS / (this.prevRMS + 1e-10) > this.onsetThreshold;
     this.prevRMS = currentRMS;
     
@@ -754,23 +798,37 @@ export class AudioAnalyzer {
   /**
    * Clean up resources
    */
-  destroy() {
+  async destroy() {
     this.isActive = false;
+    this.isInitialized = false;
     
     if (this.source) {
-      this.source.disconnect();
+      try { this.source.disconnect(); } catch (_) {}
     }
     
     if (this.gainNode) {
-      this.gainNode.disconnect();
+      try { this.gainNode.disconnect(); } catch (_) {}
+    }
+    
+    // Remove track ended listener before stopping stream
+    if (this.stream && this._trackEndedHandler) {
+      const track = this.stream.getAudioTracks()[0];
+      if (track) track.removeEventListener('ended', this._trackEndedHandler);
+      this._trackEndedHandler = null;
     }
     
     if (this.stream) {
       this.stream.getTracks().forEach(track => track.stop());
     }
     
+    // Remove statechange listener before closing (#13)
+    if (this.audioContext && this._stateChangeHandler) {
+      this.audioContext.removeEventListener('statechange', this._stateChangeHandler);
+      this._stateChangeHandler = null;
+    }
+    
     if (this.audioContext) {
-      this.audioContext.close();
+      try { await this.audioContext.close(); } catch (_) {} // Await close (#14)
     }
     
     this.audioContext = null;
@@ -780,6 +838,5 @@ export class AudioAnalyzer {
     this.gainNode = null;
     this.frequencyData = null;
     this.timeData = null;
-    this.isInitialized = false;
   }
 }

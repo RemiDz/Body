@@ -39,9 +39,14 @@ export class CymaticsOverlay {
     this.currentColor = '#00ff99';
     
     // Set initial position based on configured mode
-    this.position = this.config.positionMode === 'center'
-      ? { x: 0.5, y: 0.5 }
-      : { x: 0.5, y: 0.75 };
+    if (this.config.positionMode === 'center') {
+      this.position = { x: 0.5, y: 0.5 };
+    } else if (this.config.positionMode === 'region') {
+      // Start at heart region center (middle of body) for a natural initial position
+      this.position = { x: 0.5, y: 0.52 };
+    } else {
+      this.position = { x: 0.5, y: 0.75 };
+    }
     
     // Region positions if following
     this.regionPositions = {

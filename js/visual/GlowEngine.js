@@ -43,16 +43,16 @@ export class GlowEngine {
    * @param {number} deltaTime - Time since last update in ms
    */
   update(intensities, deltaTime) {
+    if (!intensities) return; // Guard against null/undefined
     const dt = deltaTime / 1000; // Convert to seconds
     
     for (const [regionName, targetIntensity] of Object.entries(intensities)) {
       const state = this.glowStates[regionName];
       if (!state) continue;
       
-      // Pass through intensity directly — FrequencyMapper already handles
-      // attack/decay smoothing. Adding a second smoothing layer here caused
-      // visuals to lag ~2× behind the audio.
-      state.intensity = clamp(targetIntensity, 0, 1);
+      // Apply GlowEngine's own intensity multiplier (#26)
+      const multiplier = this.config.glowIntensityMultiplier || 1;
+      state.intensity = clamp(targetIntensity * multiplier, 0, 1);
       
       // Update pulse phase for subtle animation
       if (state.intensity > 0.1) {
@@ -76,27 +76,29 @@ export class GlowEngine {
       };
     }
     
-    const intensity = state.intensity;
     const config = this.regions[regionName];
+    
+    // Multiplier already applied in update() (#26)
+    const scaledIntensity = state.intensity;
     
     // Add subtle pulse variation
     const pulseAmount = Math.sin(state.pulsePhase) * 0.05;
-    const effectiveIntensity = clamp(intensity + pulseAmount, 0, 1);
+    const effectiveIntensity = clamp(scaledIntensity + pulseAmount, 0, 1);
     
-    // Calculate blur sizes based on intensity
-    const coreBlur = this.config.glowCore.blur * intensity;
-    const midBlur = this.config.glowMid.blur * intensity;
-    const ambientBlur = this.config.glowAmbient.blur * intensity;
+    // Calculate blur sizes based on scaled intensity
+    const coreBlur = this.config.glowCore.blur * scaledIntensity;
+    const midBlur = this.config.glowMid.blur * scaledIntensity;
+    const ambientBlur = this.config.glowAmbient.blur * scaledIntensity;
     
     // Build filter string with multiple layers
     const filters = [];
     
-    if (intensity > 0.3) {
+    if (scaledIntensity > 0.3) {
       // Core glow (tight, bright)
       filters.push(`drop-shadow(0 0 ${coreBlur}px ${config.glowHex})`);
     }
     
-    if (intensity > 0.2) {
+    if (scaledIntensity > 0.2) {
       // Mid glow
       filters.push(`drop-shadow(0 0 ${midBlur}px ${config.colorHex})`);
     }

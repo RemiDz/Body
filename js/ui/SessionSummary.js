@@ -69,10 +69,10 @@ export class SessionSummary {
     document.body.appendChild(this.overlay);
 
     this.overlay.querySelector('.summary-close-btn')
-      .addEventListener('click', () => this.remove());
+      ?.addEventListener('click', () => this.remove());
 
     this.overlay.querySelector('.summary-export-btn')
-      .addEventListener('click', () => {
+      ?.addEventListener('click', () => {
         const blob = new Blob([JSON.stringify(summary, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -92,11 +92,11 @@ export class SessionSummary {
   buildTimeline(history, totalDurationMs) {
     if (!history || history.length < 3) return '';
     // Check if region data is available (new recorder format)
-    if (!history[0].regions) return this.buildLegacySparkline(history);
+    if (!history[0].regions) return this.buildLegacySparkline(history, totalDurationMs);
 
     const w = 300, h = 100, pad = 2;
     const bandH = (h - pad * 2) / REGION_STACK.length;
-    const maxT = history[history.length - 1].time || 1;
+    const maxT = totalDurationMs || history[history.length - 1].time || 1; // Use totalDurationMs for accurate axis (#34)
 
     let svg = `<svg class="summary-sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="height:${h}px">`;
 
@@ -148,11 +148,11 @@ export class SessionSummary {
   }
 
   /** Fallback for sessions recorded before region snapshots were added */
-  buildLegacySparkline(history) {
+  buildLegacySparkline(history, totalDurationMs) {
     if (!history || history.length < 3) return '';
 
     const w = 300, h = 60, pad = 4;
-    const maxT = history[history.length - 1].time;
+    const maxT = totalDurationMs || history[history.length - 1].time || 1; // Use totalDurationMs + prevent divide-by-zero (#33)
     const maxF = Math.max(...history.map(p => p.frequency), 500);
 
     // Color each segment by which region the frequency falls in
